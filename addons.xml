@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addons>
+<addon id="plugin.video.iatheater" name="Internet Archive Theater" version="0.2.0" provider-name="PythonTrousers">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0" />
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+    <provides>audio video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_GB">Internet Archive Theater add-on</summary>
+    <description lang="en_GB">Heavily restructured, advanced version of the original Internet Archive addon to  watch and listen to media archived by Internet Archive</description>
+    <disclaimer lang="en_GB">This third party addon is not in any way commissioned or endorsed by Internet Archive</disclaimer>
+    <language />
+    <platform>all</platform>
+    <license>GPL-3.0</license>
+    <forum />
+    <website>https://archive.org/</website>
+    <email />
+    <assets>
+      <icon>icon.png</icon>
+      <fanart>fanart.jpg</fanart>
+    </assets>
+  </extension>
+</addon>
+<addon id="repository.pythontrousers" name="PythonTrousers Repository" version="0.2.0" provider-name="PythonTrousers">
+    <extension point="xbmc.addon.repository" name="PythonTrousers Repository">
+        <dir>
+            <info compressed="false">https://pythontrousers.github.io/kodi/addons.xml</info>
+            <checksum>https://pythontrousers.github.io/kodi/addons.xml.md5</checksum>
+            <datadir zip="true">https://pythontrousers.github.io/kodi/</datadir>
+        </dir>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>PythonTrousers Kodi Repository</summary>
+        <description>Official repository for Internet Archive Theater and future PythonTrousers Kodi projects.</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+</addons>

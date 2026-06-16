@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<settings>
+	<category label="Playback &amp; Search">
+		<!-- Preferred File Settings -->
+		<setting id="pref_video_ext" type="select" label="Preferred Video Format" values="Ask Every Time|.mp4|.mkv|.avi|.iso" default="Ask Every Time"/>
+		<setting id="pref_audio_ext" type="select" label="Preferred Audio Format" values="Ask Every Time|.mp3|.flac|.wav|.ogg" default="Ask Every Time"/>
+		<setting id="max_resolution" type="select" label="Maximum Video Resolution" values="Any|2160|1080|720|480" default="Any"/>
+
+		<!-- Default Collections -->
+		<setting id="default_movie_collection" type="select" label="Default Movie Collection" values="opensource_movies|dvdtray|vhsvault|laserdiscs|feature_films|animationandcartoons|SciFi_Horror|comedy_films|film_noir|bmovies" default="opensource_movies"/>
+		<setting id="default_tv_collection" type="select" label="Default TV Collection" values="opensource_movies|television_inbox|dvdtray|vhsvault|anime|animationandcartoons|classic_tv|tvarchive|television|laserdiscs" default="opensource_movies"/>
+		<setting id="default_audio_collection" type="select" label="Default Audio Collection" values="opensource_audio|album_recordings|folksoundomy_music|audio_music|etree|78rpm|netlabels|podcasts" default="opensource_audio"/>
+
+		<!-- Auto Play & Select Toggles (Optimized for OOBE) -->
+		<setting id="auto_play_queue" type="bool" label="Auto-Play Next Episode/Track" default="true"/>
+		<setting id="auto_select_stream" type="bool" label="Auto-Select Best Stream" default="true"/>
+		<setting id="auto_select_collection" type="bool" label="Auto-Select Search Collection" default="true"/>
+
+		<!-- Manual Overrides -->
+		<setting id="manual_collection_override" type="bool" label="Enable Manual Collection Override" default="false"/>
+		<setting id="manual_movie_col" type="text" label="Manual Movie Collection ID" default="" enable="eq(-1,true)"/>
+		<setting id="manual_tv_col" type="text" label="Manual TV Collection ID" default="" enable="eq(-2,true)"/>
+		<setting id="manual_audio_col" type="text" label="Manual Audio Collection ID" default="" enable="eq(-3,true)"/>
+	</category>
+
+	<category label="30000">
+		<setting id="timeout" type="number" label="30001" default="8"/>
+		<setting id="clear_cache" type="action" label="30002" action="RunPlugin(plugin://plugin.video.iatheater/?action=clear)"/>
+		<setting id="DebugMode" type="bool" label="30003" default="false"/>
+	</category>
+</settings>
