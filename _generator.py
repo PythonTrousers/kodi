@@ -1,6 +1,7 @@
 import os
 import hashlib
 import zipfile
+import shutil
 import xml.etree.ElementTree as ET
 
 class Generator:
@@ -69,10 +70,30 @@ class Generator:
         except Exception as e:
             print(f"Error generating MD5: {e}")
 
+    def sync_root_zip(self):
+        # Locate the generated repository zip and copy it to the root directory
+        repo_folder = "repository.pythontrousers"
+        addon_xml_path = os.path.join(repo_folder, "addon.xml")
+        
+        if os.path.exists(addon_xml_path):
+            try:
+                tree = ET.parse(addon_xml_path)
+                version = tree.getroot().get("version")
+                zip_name = f"{repo_folder}-{version}.zip"
+                source_zip = os.path.join(repo_folder, zip_name)
+                dest_zip = os.path.join(".", zip_name)
+                
+                if os.path.exists(source_zip):
+                    shutil.copy2(source_zip, dest_zip)
+                    print(f"Successfully synced root installation zip: {dest_zip}")
+            except Exception as e:
+                print(f"Error syncing root zip: {e}")
+
 if __name__ == "__main__":
     print("Starting Kodi Repository Generator...")
     gen = Generator()
     gen.scan_and_zip_addons()
     gen.generate_xml()
     gen.generate_md5()
+    gen.sync_root_zip()
     print("Generation complete.")
