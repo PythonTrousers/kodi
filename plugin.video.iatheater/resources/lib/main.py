@@ -656,6 +656,7 @@ class Main(object):
         collections = []
         if search_type == 'movie':
             collections = [
+                ("None (Search All Movies)", "none"),
                 ("Community Video (Default)", "opensource_movies"),
                 ("DVD Tray", "dvdtray"),
                 ("The VHS Vault", "vhsvault"),
@@ -670,6 +671,7 @@ class Main(object):
             heading = "Search Movies"
         elif search_type == 'tv':
             collections = [
+                ("None (Search All TV Shows)", "none"),
                 ("Community Video (Default)", "opensource_movies"),
                 ("Unsorted Television", "television_inbox"),
                 ("DVD Tray", "dvdtray"),
@@ -684,6 +686,7 @@ class Main(object):
             heading = "Search TV Shows"
         elif search_type == 'audio':
             collections = [
+                ("None (Search All Audio)", "none"),
                 ("Community Audio (Default)", "opensource_audio"),
                 ("Long Playing Records (Vinyl)", "album_recordings"),
                 ("Folksoundomy Music", "folksoundomy_music"),
@@ -726,7 +729,7 @@ class Main(object):
                 collection_str = _settings('manual_audio_col')
                 
             if not collection_str.strip():
-                collection_str = "opensource_movies" if search_type in ['movie', 'tv'] else "opensource_audio"
+                collection_str = "opensource_movies" if content_type == 'video' else "opensource_audio"
         elif auto_select_col:
             if search_type == 'movie':
                 collection_str = _settings('default_movie_collection') or 'opensource_movies'
@@ -743,9 +746,13 @@ class Main(object):
                 return
                 
             if not selected_indices:
-                collection_str = "opensource_movies" if search_type in ['movie', 'tv'] else "opensource_audio"
+                collection_str = "opensource_movies" if content_type == 'video' else "opensource_audio"
             else:
-                collection_str = ",".join([collections[i][1] for i in selected_indices])
+                selected_slugs = [collections[i][1] for i in selected_indices]
+                if "none" in selected_slugs:
+                    collection_str = "none"
+                else:
+                    collection_str = ",".join(selected_slugs)
         
         xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
         
@@ -775,14 +782,23 @@ class Main(object):
         query_string = search_text
         sort_param = None
         
+        # 1. Routing Trap Fix & Global Assignment
         if not collection_str:
-            collection_str = "opensource_movies" if search_type in ['movie', 'tv'] else "opensource_audio"
-            
-        cols = [c.strip() for c in collection_str.split(',') if c.strip()]
-        if cols:
-            f_map["collection"] = {c: "inc" for c in cols}
-            
-        if search_type == 'movie':
+            if search_type == 'video':
+                collection_str = "none"
+            else:
+                collection_str = "opensource_movies" if content_type == 'video' else "opensource_audio"
+                
+        # 2. Collection Injection (Bypassed if 'none')
+        if collection_str != "none":
+            cols = [c.strip() for c in collection_str.split(',') if c.strip()]
+            if cols:
+                f_map["collection"] = {c: "inc" for c in cols}
+                
+        # 3. Sort Injection & Exclusions
+        if search_type == 'video':
+            sort_param = 'downloads desc'
+        elif search_type == 'movie':
             exclusions = '(trailer OR teaser OR promo OR clip OR snippet OR "short film" OR sample OR review OR intro OR menu OR extras OR bonus OR preview OR previews OR fandub OR "fan dub" OR "fan edit" OR "fan project" OR "screen recording")'
             query_string = f'({search_text}) AND NOT title:{exclusions} AND NOT subject:{exclusions}'
         elif search_type == 'tv':
@@ -807,7 +823,6 @@ class Main(object):
                 if not self._has_playable_media(fields, content_type): continue
                 
                 if search_type in ['movie', 'tv']:
-                    # Dual key check handles alternative metadata tags properly
                     dur_data = fields.get('duration') or fields.get('length')
                     dur_mins = self._parse_duration_to_minutes(dur_data)
                     
