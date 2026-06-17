@@ -3,15 +3,15 @@
 Welcome to the official Kodi repository for PythonTrousers. This repository hosts custom media plugins and applications, built with a focus on clean architecture, optimized playback, and open-source accessibility.
 
 ## 🗂️ Table of Contents
-* [About This Repository](#-about-this-repository)
-* [AI Transparency Statement](#-ai-transparency-statement)
-* [Available Add-ons](#-available-add-ons)
-* [Internet Archive Theater (IAT)](#internet-archive-theater-iat)
+* [About This Repository](#about-this-repository)
+* [AI Transparency Statement](#ai-transparency-statement)
+* [Available Add-ons](#available-add-ons)
+* [Internet Archive Theater (IAT)](#internet-archive-theater-v020-beta)
   * [Features & Additions](#features--additions)
   * [Under-the-Hood Optimizations](#under-the-hood-optimizations)
-* [How to Install](#-how-to-install)
-* [Troubleshooting & Fixes](#-troubleshooting--fixes)
-* [For Developers: Repository Architecture](#-for-developers-repository-architecture)
+* [How to Install](#how-to-install)
+* [Troubleshooting & Fixes](#troubleshooting--fixes)
+* [For Developers: Repository Architecture](#for-developers-repository-architecture)
 
 ---
 
