@@ -3,15 +3,15 @@
 Welcome to the official Kodi repository for PythonTrousers. This repository hosts custom media plugins and applications, built with a focus on clean architecture, optimized playback, and open-source accessibility.
 
 ## 🗂️ Table of Contents
-* [About This Repository](#about-this-repository)
-* [AI Transparency Statement](#ai-transparency-statement)
-* [Available Add-ons](#available-add-ons)
+* [About This Repository](#ℹ️-about-this-repository)
+* [AI Transparency Statement](#🤖-ai-transparency-statement)
+* [Available Add-ons](#📦-available-add-ons)
 * [Internet Archive Theater (IAT)](#internet-archive-theater-v020-beta)
   * [Features & Additions](#features--additions)
   * [Under-the-Hood Optimizations](#under-the-hood-optimizations)
-* [How to Install](#how-to-install)
-* [Troubleshooting & Fixes](#troubleshooting--fixes)
-* [For Developers: Repository Architecture](#for-developers-repository-architecture)
+* [How to Install](#⚙️-how-to-install)
+* [Troubleshooting & Fixes](#🔧-troubleshooting--fixes)
+* [For Developers: Repository Architecture](#🛠-for-developers-repository-architecture)
 
 ---
 
@@ -83,12 +83,12 @@ If you are experiencing buffering loops or the addon fails to track your resume 
 2. Look for a file named `advancedsettings.xml`. If it does not exist, create a new text document and name it `advancedsettings.xml`.
 3. Open the file in any text editor and add the following code:
 ```xml
-   <advancedsettings>
-       <network>
-           <disablehttp2>true</disablehttp2>
-       </network>
-   </advancedsettings>
-   ```
+<advancedsettings>
+    <network>
+        <disablehttp2>true</disablehttp2>
+    </network>
+</advancedsettings>
+```
    *(Note: If you already have an `advancedsettings.xml` file, simply add the `<network>` block inside your existing `<advancedsettings>` tags).*
 4. Save the file and **restart Kodi**. Your streams should now initialize via standard HTTP/1.1, resolving the stuttering.
 
