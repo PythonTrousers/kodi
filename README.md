@@ -3,34 +3,34 @@
 Welcome to the official Kodi repository for PythonTrousers. This repository hosts custom media plugins and applications, built with a focus on clean architecture, optimized playback, and open-source accessibility.
 
 ## 🗂️ Table of Contents
-* [About This Repository](#about-this-repository)
-* [AI Transparency Statement](#ai-transparency-statement)
-* [Available Add-ons](#available-add-ons)
-* [Internet Archive Theater (IAT)](#internet-archive-theater-v020-beta)
-  * [Features & Additions](#features--additions)
-  * [Under-the-Hood Optimizations](#under-the-hood-optimizations)
-* [How to Install](#how-to-install)
-* [Troubleshooting & Fixes](#troubleshooting--fixes)
-* [For Developers: Repository Architecture](#for-developers-repository-architecture)
+* [About This Repository](#about)
+* [AI Transparency Statement](#ai)
+* [Available Add-ons](#addons)
+* [Internet Archive Theater (IAT)](#iat)
+  * [Features & Additions](#features)
+  * [Under-the-Hood Optimizations](#optimizations)
+* [How to Install](#install)
+* [Troubleshooting & Fixes](#troubleshooting)
+* [For Developers: Repository Architecture](#developers)
 
 ---
 
-## ℹ️ About This Repository
+## <a id="about"></a>ℹ️ About This Repository
 This repository serves as the central distribution hub for current and future Kodi addons developed by PythonTrousers. It utilizes a zero-configuration raw backend delivery system, allowing seamless updates directly to your Kodi devices.
 
-## 🤖 AI Transparency Statement
+## <a id="ai"></a>🤖 AI Transparency Statement
 In the spirit of open-source transparency, please note that the addons in this repository utilize generative AI assistance during development. AI tools are used to assist with code formatting, logic rewrites, architectural structuring, and debugging, ensuring faster deployment and highly optimized scripts.
 
 ---
 
-## 📦 Available Add-ons
+## <a id="addons"></a>📦 Available Add-ons
 
-### Internet Archive Theater (v0.2.0 Beta)
+### <a id="iat"></a>Internet Archive Theater (v0.2.0 Beta)
 **Internet Archive Theater (IAT)** is a dedicated video and audio plugin designed to interface with the Internet Archive. It provides a highly optimized, structured viewing experience for public domain and archived media directly within Kodi.
 
 *Note: This addon is a massive, heavily modified fork and spiritual successor to the original `plugin.video.archive.org` by gujal. Because the original addon was abandoned and broken by API changes, IAT was built from the ground up as a standalone app with entirely rewritten logic, custom UI flows, and expanded playback capabilities.*
 
-#### Features & Additions
+#### <a id="features"></a>Features & Additions
 * **Continue Watching (Resume Data):** Added custom local JSON tracking to remember where you left off in a video, accessible via a dedicated menu.
 * **Search History Tracking:** Your recent searches are now locally saved, making it easy to jump back into a previous query without retyping.
 * **Granular Search Categories:** Replaced the old "Search All" with specific searches for Movies, TV Shows, and Audio, which intelligently target specific Internet Archive collections.
@@ -40,7 +40,7 @@ In the spirit of open-source transparency, please note that the addons in this r
 * **Expanded Settings UI:** A massive settings overhaul allows you to set preferred video/audio formats, cap maximum resolutions, enable/disable auto-play, and configure manual or automatic collection overrides.
 * **Custom Visuals:** Added a native Kodi splash screen on startup to improve the aesthetic experience.
 
-#### Under-the-Hood Optimizations
+#### <a id="optimizations"></a>Under-the-Hood Optimizations
 * **Strict Media Filtering:** Advanced regex and extension filtering automatically removes unplayable files, text documents, and junk data from your search results.
 * **Smart Duration Parsing:** The new logic parses runtimes to automatically filter out promos, short clips, and trailers (e.g., hiding videos under 45 minutes when searching for "Movies").
 * **cURL Pipe Injection:** Streaming URLs are now injected with `|Connection=keep-alive&Timeout=60` to enforce persistent connections and prevent arbitrary dropouts.
@@ -50,7 +50,7 @@ In the spirit of open-source transparency, please note that the addons in this r
 
 ---
 
-## ⚙️ How to Install
+## <a id="install"></a>⚙️ How to Install
 
 To install this repository and access the add-ons on your Kodi device (Raspberry Pi, Android, PC, etc.), follow these steps:
 
@@ -67,7 +67,7 @@ To install this repository and access the add-ons on your Kodi device (Raspberry
 
 ---
 
-## 🔧 Troubleshooting & Fixes
+## <a id="troubleshooting"></a>🔧 Troubleshooting & Fixes
 
 ### Stuttering, Freezing, or Tracking Issues (Disabling HTTP2)
 Newer versions of Kodi (v19 Matrix and above) utilize HTTP2 by default for network connections. While generally beneficial, HTTP2 can cause severe stuttering, freezing, and playback tracking issues when streaming large files from specific backend servers like the Internet Archive.
@@ -94,7 +94,7 @@ If you are experiencing buffering loops or the addon fails to track your resume 
 
 ---
 
-## 🛠 For Developers: Repository Architecture
+## <a id="developers"></a>🛠 For Developers: Repository Architecture
 
 This repository uses a zero-configuration raw backend delivery system managed by a local build script. 
 
