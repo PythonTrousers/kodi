@@ -67,7 +67,7 @@ To install this repository and access the add-ons on your Kodi device (Raspberry
 4. Name the media source **PythonTrousers** and click **OK**.
 5. Return to the Kodi home screen, click **Add-ons**, and click the open box icon at the top left.
 6. Select **Install from zip file** *(If prompted, enable "Unknown sources" in your settings)*.
-7. Select **PythonTrousers**, then click on the `repository.pythontrousers` folder, and select the `repository.pythontrousers-0.3.0.zip` file.
+7. Select **PythonTrousers** and then select the `repository.pythontrousers-0.3.0.zip` file.
 8. Once the repository installed notification appears, select **Install from repository**.
 9. Select **PythonTrousers Repository** -> **Video add-ons** -> **Internet Archive Theater** and hit **Install**.
 
