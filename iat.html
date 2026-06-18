@@ -83,24 +83,24 @@
             font-style: italic;
         }
 
-        /* * CSS Grid Layout for Sidebar + Main Content 
-         */
-        .layout-grid {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 4rem;
-            max-width: 1100px;
+        /* * Balanced Flex Layout * */
+        .layout-flex {
+            display: flex;
+            justify-content: center;
+            max-width: 1600px; /* Wide enough to hold all 3 columns */
             margin: 0 auto;
             padding: 3rem 2rem;
-            align-items: start; /* Allows sticky positioning to work inside grid */
+            align-items: flex-start;
         }
 
-        /* * Sticky Sidebar Styling 
-         */
+        /* * Sticky Sidebar Styling * */
         .toc-sidebar {
+            width: 280px;
+            flex-shrink: 0; /* Prevents sidebar from shrinking */
             position: sticky;
-            top: 2rem; /* Locks 2rem from top of screen */
+            top: 2rem;
             padding-right: 2rem;
+            margin-right: 4rem;
             border-right: 1px solid #333;
         }
 
@@ -133,7 +133,7 @@
 
         .toc-list a:hover {
             color: var(--theater-cream);
-            transform: translateX(4px); /* Slight slide to the right on hover */
+            transform: translateX(4px);
         }
 
         .toc-sublist {
@@ -156,8 +156,12 @@
             color: var(--theater-gold);
         }
 
-        /* * Main Content Typography 
-         */
+        /* * Main Content Typography * */
+        .main-content {
+            max-width: 850px;
+            width: 100%;
+        }
+
         .main-content h2 {
             color: var(--theater-gold);
             border-bottom: 1px solid #333;
@@ -245,20 +249,42 @@
             color: var(--bg-dark);
         }
 
-        /* * Mobile Responsive Fallback 
-         */
-        @media (max-width: 900px) {
-            .layout-grid {
-                grid-template-columns: 1fr; /* Stacks the columns */
-                gap: 2rem;
-            }
+        /* * The Invisible Dummy Spacer * */
+        .dummy-spacer {
+            width: 280px;
+            flex-shrink: 0;
+            margin-left: 4rem; /* Matches the sidebar margin */
+            pointer-events: none;
+        }
 
+        /* * Laptop/Tablet Responsive Fallback * */
+        @media (max-width: 1550px) {
+            .dummy-spacer {
+                display: none; /* Kill spacer on smaller screens to prevent squashing */
+            }
+            .layout-flex {
+                max-width: 1100px;
+            }
             .toc-sidebar {
-                position: static; /* Removes sticky behavior */
+                margin-right: 2rem; /* Tighten gap slightly */
+            }
+        }
+
+        /* * Mobile Responsive Fallback * */
+        @media (max-width: 900px) {
+            .layout-flex {
+                flex-direction: column;
+                padding: 2rem 1.5rem;
+            }
+            .toc-sidebar {
+                width: 100%;
+                margin-right: 0;
+                position: static;
                 border-right: none;
                 border-bottom: 1px solid #333;
                 padding-right: 0;
                 padding-bottom: 2rem;
+                margin-bottom: 2rem;
             }
         }
     </style>
@@ -273,7 +299,7 @@
         </div>
     </div>
 
-    <div class="layout-grid">
+    <div class="layout-flex">
 
         <aside class="toc-sidebar">
             <h2>Table of Contents</h2>
@@ -417,6 +443,9 @@
             </div>
 
         </main>
+
+        <div class="dummy-spacer"></div>
+
     </div>
 
 </body>
