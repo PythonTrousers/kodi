@@ -80,26 +80,30 @@ Internet Archive Theater (IAT) offers a robust set of features to navigate the m
 ### 1. Main Menu Breakdown
 The main menu is your starting point and is divided into specific functional routes:
 * **Continue Watching:** Access your locally saved resume points to instantly pick up videos exactly where you left off.
-* **Movies, TV Shows, Audio:** These are dedicated media hubs. They contain built-in shortcuts to highly curated, popular Archive vaults (e.g., *The VHS Vault* or *Classic TV*) and automatically apply format filters to keep junk files out.
+* **Search Movies, TV Shows, Audio:** These are dedicated search tools curated to find your specified media. 
 * **Search Collections:** A dedicated search tool used strictly to find user-created metadata vaults (Collections) across the entire Archive.
 * **Favorite Collections:** A quick-access hub containing any collections you have manually saved.
 
 ### 2. Finding & Favoriting Collections
 The Internet Archive is built on "Collections" (folders containing specific types of media). 
-* **Searching for Collections:** Select the **Search Collections** option from the main menu to look for specific themes or curators (e.g., searching "Laserdisc" will return vaults specifically dedicated to laserdisc rips).
+* **Searching for Collections:** Select the **Search Collections** option from the main menu to look for specific themes or curators (e.g., searching "Laserdisc" will return vaults specifically dedicated to laserdisc rips). You can also browse the popular collections section.
 * **Favoriting Collections:** Once you find a collection you want to keep track of, highlight it, open the Kodi Context Menu (usually 'C' on a keyboard, or long-press the 'OK' button on a remote), and select **Save to Favorite Collections**. This saves it directly to your main menu for permanent quick access.
 
 ### 3. Search Optimization
 To get the absolute best results when searching for specific media files:
 * **Contextual Searching:** Always initiate your search from within the relevant hub. Searching for a film inside the **Movies** hub will automatically filter out text files, images, and audio tracks, and will apply duration logic to hide short promo clips.
 * **Targeting specific Vaults:** When you initiate a keyword search, the addon will ask you which collection you want to search inside. **Any collection you have saved to your "Favorite Collections" will automatically populate in this selection menu.** This allows you to specifically search for a movie *only* within your favorite high-quality vaults.
-* **The Global Bypass:** If you cannot find what you are looking for in the curated lists, select the **None (Global Bypass)** option when asked where to search. This completely strips all safety filters and searches the entire, unfiltered Internet Archive database for your keyword.
+* **The Global Bypass:** If you cannot find what you are looking for in the curated lists, select the **None (Global Bypass)** option when asked where to search. This completely strips all specified collections and searches the entire Internet Archive database for your keyword.
 
 ### 4. Configuring Settings
 You can fine-tune the addon's performance to match your hardware and network speed by opening the Add-on Settings:
 * **Playback Preferences:** Hardcode your preferred video and audio formats (e.g., MP4 vs. MKV). You can also set a maximum resolution cap (like 720p or 1080p), which is highly recommended for slower internet connections.
-* **Auto-Play:** Toggle the background playlist queueing system on or off. When enabled, the addon will automatically track your quality preferences and continuously play the next episode or track in a list.
-* **Collection Overrides:** For advanced users, you can manually input specific Archive identifiers to override default routing behaviors for various hubs.
+* **Default Collections:** Choose which curated Archive vaults are used by default when searching for Movies, TV Shows, or Audio.
+* **Auto-Play Next Episode/Track:** Toggle the background playlist queueing system on or off. When enabled, the addon will automatically track your quality preferences based on the first file selected and continuously play the next episode or track in a list.
+* **Auto-Select Best Stream:** Toggle to automatically select your preferred file format. Playback will fallback to the next available format if the preferred format is unavailable. 
+* **Auto-Select Search Collection:** Toggle to bypass the collections selection menu when searching. The addon will instead automatically route your query to your designated Default Collections.
+* **Collection Overrides:** For advanced users, enable manual overrides and input specific Archive identifiers to permanently bypass default routing behaviors for various hubs.
+* **Maintenance & Debugging:** Adjust network timeout limits, clear the addon's local cache, or enable debug logging for troubleshooting.
 
 ---
 
