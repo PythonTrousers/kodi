@@ -75,35 +75,31 @@ To install this repository and access the add-ons on your Kodi device (Raspberry
 
 ## <a id="tutorial"></a>📖 User Guide & Tutorial
 
-Internet Archive Theater (IAT) offers a robust set of features to navigate the massive library of the Internet Archive. Here is how to get the most out of the addon:
+Internet Archive Theater (IAT) offers a robust set of features to navigate the massive library of the Internet Archive. Here is a breakdown of how to use the addon effectively:
 
-### Navigating Categories & Shortcuts
-Instead of sifting through raw data, use the dedicated **Movies**, **TV Shows**, and **Audio** hubs on the main menu. These hubs contain built-in shortcuts to highly curated, popular Archive vaults (like *The VHS Vault*, *Classic TV*, and *The Live Music Archive*), instantly filtering out irrelevant text and image files.
+### 1. Main Menu Breakdown
+The main menu is your starting point and is divided into specific functional routes:
+* **Continue Watching:** Access your locally saved resume points to instantly pick up videos exactly where you left off.
+* **Movies, TV Shows, Audio:** These are dedicated media hubs. They contain built-in shortcuts to highly curated, popular Archive vaults (e.g., *The VHS Vault* or *Classic TV*) and automatically apply format filters to keep junk files out.
+* **Search Collections:** A dedicated search tool used strictly to find user-created metadata vaults (Collections) across the entire Archive.
+* **Favorite Collections:** A quick-access hub containing any collections you have manually saved.
 
-### Mastering the Search System
-The search functionality has been completely rewritten for precision:
-* **Granular Searching:** Searching within a specific hub (e.g., Movies) will automatically restrict results to video files and apply duration filters to hide short clips.
-* **Global Collection Search:** Use the **Search Collections** route on the main menu to look for specific user-curated vaults across the entire Internet Archive.
-* **The "None" Wildcard:** When prompted to select a collection to search within, choosing **None (Global Bypass)** will strip all filters and search the entire Archive database for your keyword.
+### 2. Finding & Favoriting Collections
+The Internet Archive is built on "Collections" (folders containing specific types of media). 
+* **Searching for Collections:** Select the **Search Collections** option from the main menu to look for specific themes or curators (e.g., searching "Laserdisc" will return vaults specifically dedicated to laserdisc rips).
+* **Favoriting Collections:** Once you find a collection you want to keep track of, highlight it, open the Kodi Context Menu (usually 'C' on a keyboard, or long-press the 'OK' button on a remote), and select **Save to Favorite Collections**. This saves it directly to your main menu for permanent quick access.
 
-### Managing Favorite Collections
-If you find a specific Archive collection you love, you can save it locally to your Kodi device:
-1. Highlight any collection folder or search result.
-2. Open the Kodi Context Menu (usually 'C' on a keyboard, or long-press on a remote).
-3. Select **Save to Favorite Collections**.
-4. Access your saved curations anytime via the **Favorite Collections** route on the main menu.
+### 3. Search Optimization
+To get the absolute best results when searching for specific media files:
+* **Contextual Searching:** Always initiate your search from within the relevant hub. Searching for a film inside the **Movies** hub will automatically filter out text files, images, and audio tracks, and will apply duration logic to hide short promo clips.
+* **Targeting specific Vaults:** When you initiate a keyword search, the addon will ask you which collection you want to search inside. **Any collection you have saved to your "Favorite Collections" will automatically populate in this selection menu.** This allows you to specifically search for a movie *only* within your favorite high-quality vaults.
+* **The Global Bypass:** If you cannot find what you are looking for in the curated lists, select the **None (Global Bypass)** option when asked where to search. This completely strips all safety filters and searches the entire, unfiltered Internet Archive database for your keyword.
 
-### Playback, Queues, & Auto-Play
-IAT is designed for seamless binge-watching:
-* **Smart Stream Selection:** When you click a video, you will be prompted to select your preferred resolution and format (e.g., 1080p MP4 vs. original source). 
-* **Auto-Play Tracking:** The addon runs a background tracker. If you are watching a playlist or an episodic collection, it will automatically inherit your quality preferences and queue up the next track perfectly. *(Note: Queueing is automatically disabled for DVD ISO files).*
-* **Continue Watching:** The addon locally logs your playback history. Access the **Continue Watching** menu to instantly resume videos from exactly where you left off.
-
-### Configuring Settings
-Customize your viewing experience by opening the Add-on Settings menu:
-* **Playback Preferences:** Hardcode your preferred video/audio formats and set a maximum resolution cap (great for slower network connections).
-* **Auto-Play Toggles:** Enable or disable the automated playlist queueing system.
-* **Collection Overrides:** Configure manual or automatic routing for specific data hubs.
+### 4. Configuring Settings
+You can fine-tune the addon's performance to match your hardware and network speed by opening the Add-on Settings:
+* **Playback Preferences:** Hardcode your preferred video and audio formats (e.g., MP4 vs. MKV). You can also set a maximum resolution cap (like 720p or 1080p), which is highly recommended for slower internet connections.
+* **Auto-Play:** Toggle the background playlist queueing system on or off. When enabled, the addon will automatically track your quality preferences and continuously play the next episode or track in a list.
+* **Collection Overrides:** For advanced users, you can manually input specific Archive identifiers to override default routing behaviors for various hubs.
 
 ---
 
