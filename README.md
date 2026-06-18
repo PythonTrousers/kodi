@@ -10,6 +10,7 @@ Welcome to the official Kodi repository for PythonTrousers. This repository host
   * [Features & Additions](#features)
   * [Under-the-Hood Optimizations](#optimizations)
 * [How to Install](#install)
+* [User Guide & Tutorial](#tutorial)
 * [Troubleshooting & Fixes](#troubleshooting)
 * [For Developers: Repository Architecture](#developers)
 * [Patch Notes & Changelog](CHANGELOG.md)
@@ -72,6 +73,40 @@ To install this repository and access the add-ons on your Kodi device (Raspberry
 
 ---
 
+## <a id="tutorial"></a>📖 User Guide & Tutorial
+
+Internet Archive Theater (IAT) offers a robust set of features to navigate the massive library of the Internet Archive. Here is how to get the most out of the addon:
+
+### Navigating Categories & Shortcuts
+Instead of sifting through raw data, use the dedicated **Movies**, **TV Shows**, and **Audio** hubs on the main menu. These hubs contain built-in shortcuts to highly curated, popular Archive vaults (like *The VHS Vault*, *Classic TV*, and *The Live Music Archive*), instantly filtering out irrelevant text and image files.
+
+### Mastering the Search System
+The search functionality has been completely rewritten for precision:
+* **Granular Searching:** Searching within a specific hub (e.g., Movies) will automatically restrict results to video files and apply duration filters to hide short clips.
+* **Global Collection Search:** Use the **Search Collections** route on the main menu to look for specific user-curated vaults across the entire Internet Archive.
+* **The "None" Wildcard:** When prompted to select a collection to search within, choosing **None (Global Bypass)** will strip all filters and search the entire Archive database for your keyword.
+
+### Managing Favorite Collections
+If you find a specific Archive collection you love, you can save it locally to your Kodi device:
+1. Highlight any collection folder or search result.
+2. Open the Kodi Context Menu (usually 'C' on a keyboard, or long-press on a remote).
+3. Select **Save to Favorite Collections**.
+4. Access your saved curations anytime via the **Favorite Collections** route on the main menu.
+
+### Playback, Queues, & Auto-Play
+IAT is designed for seamless binge-watching:
+* **Smart Stream Selection:** When you click a video, you will be prompted to select your preferred resolution and format (e.g., 1080p MP4 vs. original source). 
+* **Auto-Play Tracking:** The addon runs a background tracker. If you are watching a playlist or an episodic collection, it will automatically inherit your quality preferences and queue up the next track perfectly. *(Note: Queueing is automatically disabled for DVD ISO files).*
+* **Continue Watching:** The addon locally logs your playback history. Access the **Continue Watching** menu to instantly resume videos from exactly where you left off.
+
+### Configuring Settings
+Customize your viewing experience by opening the Add-on Settings menu:
+* **Playback Preferences:** Hardcode your preferred video/audio formats and set a maximum resolution cap (great for slower network connections).
+* **Auto-Play Toggles:** Enable or disable the automated playlist queueing system.
+* **Collection Overrides:** Configure manual or automatic routing for specific data hubs.
+
+---
+
 ## <a id="troubleshooting"></a>🔧 Troubleshooting & Fixes
 
 ### Stuttering, Freezing, or Tracking Issues (Disabling HTTP2)
@@ -93,3 +128,21 @@ If you are experiencing buffering loops or the addon fails to track your resume 
         <disablehttp2>true</disablehttp2>
     </network>
 </advancedsettings>
+```
+   *(Note: If you already have an `advancedsettings.xml` file, simply add the `<network>` block inside your existing `<advancedsettings>` tags).*
+4. Save the file and **restart Kodi**. Your streams should now initialize via standard HTTP/1.1, resolving the stuttering.
+
+---
+
+## <a id="developers"></a>🛠 For Developers: Repository Architecture
+
+This repository uses a zero-configuration raw backend delivery system managed by a local build script. 
+
+To publish updates or add new plugins:
+1. Update your plugin's code and iterate the version number in its `addon.xml`.
+2. Run `python _generator.py` from the root directory. This script will automatically:
+   * Sweep the target directory and permanently delete any obsolete `.zip` archives to prevent version conflicts.
+   * Package the new plugin release into standard Kodi `.zip` formats.
+   * Rebuild the master `addons.xml` index.
+   * Generate a new `addons.xml.md5` checksum hash.
+3. Commit and push the changes to the `main` branch. GitHub Pages will automatically serve the updated index to Kodi clients.
