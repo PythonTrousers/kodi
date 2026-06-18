@@ -3,30 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PythonTrousers Kodi Repository</title>
     
-    <title>PythonTrousers Kodi Repository - Internet Archive Theater Addon</title>
-    <meta name="description" content="Official Kodi repository for the Internet Archive Theater addon. Install the latest zip to stream public domain movies, classic TV, and audio directly from Archive.org.">
-    <meta name="keywords" content="kodi, kodi addon, internet archive, kodi plugin, public domain movies, classic tv, python3">
+    <meta name="description" content="Official distribution hub for PythonTrousers Kodi addons.">
+    <meta name="keywords" content="kodi, kodi repository, pythontrousers, addons">
     <meta name="author" content="PythonTrousers">
     
-    <meta property="og:title" content="PythonTrousers Kodi Repository - Internet Archive Theater">
-    <meta property="og:description" content="Download the latest PythonTrousers Kodi repository zip to install the Internet Archive Theater addon for public domain streaming.">
+    <meta property="og:title" content="PythonTrousers Kodi Repository">
+    <meta property="og:description" content="Download the latest PythonTrousers Kodi repository zip to install optimized addons.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pythontrousers.github.io/kodi/">
 
     <style>
-        body { font-family: sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; line-height: 1.6; }
-        a { color: #0366d6; text-decoration: none; font-weight: bold; font-size: 1.1em; }
-        a:hover { text-decoration: underline; }
+        :root {
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --accent-color: #0366d6;
+            --accent-hover: #024ea4;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .header-container {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header-container h1 {
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+
+        .download-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .install-box {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 3rem;
+        }
+
+        .install-box h2 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 0.5rem;
+        }
+
+        code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #d63384;
+        }
+
+        .addon-section-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .addon-grid {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .addon-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 350px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .addon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .addon-icon-container {
+            width: 100%;
+            height: 250px;
+            background-color: #e5cc9f; /* Color pulled from icon background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .addon-icon-container img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .addon-info {
+            padding: 1.5rem;
+        }
+
+        .addon-info h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.4rem;
+            color: #111;
+        }
+
+        .addon-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
-    <h1>PythonTrousers Kodi Repository</h1>
-    <p>To install this repository in Kodi, use the File Manager to add this URL as a source, then "Install from zip file" and select the link below.</p>
+
+    <div class="header-container">
+        <h1>PythonTrousers Kodi Repository</h1>
+        <p>The official distribution hub for custom, high-performance Kodi addons. Built with a focus on clean architecture, optimized playback, and open-source accessibility.</p>
+        
+        <a href="repository.pythontrousers-0.2.0.zip" class="download-btn">Download Repository (v0.2.0)</a>
+    </div>
+
+    <div class="install-box">
+        <h2>⚙️ How to Install in Kodi</h2>
+        <ol>
+            <li>Open Kodi and navigate to the <strong>Settings</strong> gear icon.</li>
+            <li>Open <strong>File Manager</strong> and select <strong>Add source</strong>.</li>
+            <li>Click on <code>&lt;None&gt;</code> and enter the URL exactly: <br><code>https://pythontrousers.github.io/kodi/</code></li>
+            <li>Name the media source <strong>PythonTrousers</strong> and click <strong>OK</strong>.</li>
+            <li>Return to the home screen, click <strong>Add-ons</strong>, and click the open box icon at the top left.</li>
+            <li>Select <strong>Install from zip file</strong>.</li>
+            <li>Select <strong>PythonTrousers</strong> and then select the <code>repository.pythontrousers-0.2.0.zip</code> file.</li>
+        </ol>
+    </div>
+
+    <h2 class="addon-section-title">Available Add-ons</h2>
     
-    <hr>
-    
-    <a href="repository.pythontrousers-0.2.0.zip">repository.pythontrousers-0.2.0.zip</a>
-    
+    <div class="addon-grid">
+        <a href="iat.html" class="addon-card">
+            <div class="addon-icon-container">
+                <img src="icon.png" alt="Internet Archive Theater Icon">
+            </div>
+            <div class="addon-info">
+                <h3>Internet Archive Theater</h3>
+                <p>A highly optimized, standalone viewing experience for streaming public domain movies, classic TV, and audio directly from Archive.org.</p>
+            </div>
+        </a>
+    </div>
+
 </body>
 </html>

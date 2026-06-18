@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet Archive Theater - PythonTrousers</title>
+    
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-panel: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #aaaaaa;
+            --theater-red: #8b0000;
+            --theater-gold: #c5a059;
+            --theater-cream: #f4ecd8;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.7;
+        }
+
+        /* Hero Section utilizing fanart.jpg */
+        .hero {
+            background-image: url('fanart.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: inset 0 -50px 100px rgba(0,0,0,0.9);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            background: rgba(18, 18, 18, 0.85);
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--theater-gold);
+            max-width: 600px;
+        }
+
+        .hero-content img {
+            width: 120px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .hero-content h1 {
+            color: var(--theater-cream);
+            margin: 0 0 0.5rem 0;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .hero-content p {
+            color: var(--theater-gold);
+            margin: 0;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        h2 {
+            color: var(--theater-gold);
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+            margin-top: 2.5rem;
+        }
+
+        h3 {
+            color: var(--theater-cream);
+            margin-top: 2rem;
+        }
+
+        .intro-box {
+            background-color: var(--bg-panel);
+            padding: 1.5rem 2rem;
+            border-left: 5px solid var(--theater-red);
+            border-radius: 0 8px 8px 0;
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        ul, ol {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.8rem;
+        }
+
+        strong {
+            color: var(--theater-cream);
+        }
+
+        code {
+            background-color: #000;
+            color: var(--theater-gold);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        pre {
+            background-color: #000;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #333;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: var(--text-main);
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 3rem;
+            padding: 12px 24px;
+            background-color: transparent;
+            color: var(--theater-gold);
+            border: 2px solid var(--theater-gold);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.2s;
+            font-family: sans-serif;
+        }
+
+        .back-btn:hover {
+            background-color: var(--theater-gold);
+            color: var(--bg-dark);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <div class="hero-content">
+            <img src="icon.png" alt="IAT Icon">
+            <h1>Internet Archive Theater</h1>
+            <p>v0.3.2 | Built for Kodi</p>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="intro-box">
+            <strong>Internet Archive Theater (IAT)</strong> is a dedicated video and audio plugin designed to interface with the Internet Archive. It provides a highly optimized, structured viewing experience for public domain and archived media directly within Kodi.
+        </div>
+
+        <h2>✨ Features & Additions</h2>
+        <ul>
+            <li><strong>Continue Watching (Resume Data):</strong> Custom local JSON tracking remembers where you left off. Seamlessly integrates with Kodi's native UI to prompt you to resume or restart.</li>
+            <li><strong>Granular Search Categories:</strong> Dedicated search routes for Movies, TV Shows, and Audio that intelligently target specific Internet Archive collections.</li>
+            <li><strong>Favorite Collections Subfolders:</strong> Save custom Archive collections to a local favorites list, automatically organized into distinct media subfolders.</li>
+            <li><strong>Binge-Watching / Auto-Play Queue:</strong> A threaded background tracker automatically queues up the next episode or track in a playlist sequence.</li>
+            <li><strong>Smart Stream Selection:</strong> Extracts and displays resolution, file size, and source format before playback.</li>
+        </ul>
+
+        <h2>⚙️ Under-the-Hood Optimizations</h2>
+        <ul>
+            <li><strong>Strict Media Filtering:</strong> Advanced regex and extension filtering automatically removes unplayable files, text documents, and junk data from results.</li>
+            <li><strong>Smart Duration Parsing:</strong> Logic parses runtimes to automatically filter out promos, short clips, and trailers.</li>
+            <li><strong>cURL Pipe Injection:</strong> Streaming URLs are injected with Keep-Alive parameters and User-Agent spoofing to bypass backend throttling and prevent dropouts.</li>
+            <li><strong>DVD ISO Playback Optimization:</strong> Explicitly sets the MIME type to eliminate Kodi's internal network probe freezing on ISO files.</li>
+        </ul>
+
+        <h2>🔧 Troubleshooting: HTTP2 Stuttering</h2>
+        <p>Newer versions of Kodi (v19 Matrix and above) utilize HTTP2 by default. This can cause severe stuttering, freezing, and playback tracking issues when streaming large files from backend servers like the Internet Archive.</p>
+        <p>If you are experiencing buffering loops or the addon fails to track your resume points, <strong>disabling HTTP2 in Kodi</strong> is the recommended fix:</p>
+        
+        <ol>
+            <li>Locate your Kodi <code>userdata</code> folder (e.g., <code>%APPDATA%\Kodi\userdata</code> on Windows).</li>
+            <li>Look for a file named <code>advancedsettings.xml</code>. If it does not exist, create a new text document and name it.</li>
+            <li>Open the file in a text editor and add the following code:</li>
+        </ol>
+
+<pre><code>&lt;advancedsettings&gt;
+    &lt;network&gt;
+        &lt;disablehttp2&gt;true&lt;/disablehttp2&gt;
+    &lt;/network&gt;
+&lt;/advancedsettings&gt;</code></pre>
+
+        <p>Save the file and <strong>restart Kodi</strong>. Your streams should now initialize via standard HTTP/1.1.</p>
+
+        <a href="index.html" class="back-btn">← Back to Repository Hub</a>
+
+    </div>
+
+</body>
+</html>
