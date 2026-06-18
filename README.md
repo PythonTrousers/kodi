@@ -27,7 +27,7 @@ In the spirit of open-source transparency, please note that the addons in this r
 
 ## <a id="addons"></a>📦 Available Add-ons
 
-### <a id="iat"></a>Internet Archive Theater (v0.3.1)
+### <a id="iat"></a>Internet Archive Theater (v0.3.2)
 **Internet Archive Theater (IAT)** is a dedicated video and audio plugin designed to interface with the Internet Archive. It provides a highly optimized, structured viewing experience for public domain and archived media directly within Kodi.
 
 *Note: This addon is a massive, heavily modified fork and spiritual successor to the original `plugin.video.archive.org` by gujal. Because the original addon was abandoned and broken by API changes, IAT was built from the ground up as a standalone app with entirely rewritten logic, custom UI flows, and expanded playback capabilities.*
