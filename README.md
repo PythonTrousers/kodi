@@ -27,21 +27,21 @@ In the spirit of open-source transparency, please note that the addons in this r
 
 ## <a id="addons"></a>📦 Available Add-ons
 
-### <a id="iat"></a>Internet Archive Theater (v0.3.0)
+### <a id="iat"></a>Internet Archive Theater (v0.3.1)
 **Internet Archive Theater (IAT)** is a dedicated video and audio plugin designed to interface with the Internet Archive. It provides a highly optimized, structured viewing experience for public domain and archived media directly within Kodi.
 
 *Note: This addon is a massive, heavily modified fork and spiritual successor to the original `plugin.video.archive.org` by gujal. Because the original addon was abandoned and broken by API changes, IAT was built from the ground up as a standalone app with entirely rewritten logic, custom UI flows, and expanded playback capabilities.*
 
 #### <a id="features"></a>Features & Additions
-* **Continue Watching (Resume Data):** Added custom local JSON tracking to remember where you left off in a video, accessible via a dedicated menu.
+* **Continue Watching (Resume Data):** Added custom local JSON tracking to remember where you left off in a video. Seamlessly integrates with Kodi's native UI to prompt you to resume or restart upon selection.
 * **Search History Tracking:** Your recent searches are now locally saved, making it easy to jump back into a previous query without retyping.
 * **Granular Search Categories:** Replaced the old "Search All" with specific searches for Movies, TV Shows, and Audio, which intelligently target specific Internet Archive collections.
 * **Curated Collection Shortcuts:** Added built-in shortcuts to popular media hubs (e.g., The VHS Vault, DVD Tray, Laserdisc Archive, Classic TV, etc.).
-* **Favorite Collections:** Save custom Archive collections to a local favorites list for quick access. 
+* **Favorite Collections Subfolders:** Save custom Archive collections to a local favorites list. Your saved vaults are now automatically organized into distinct Movie, TV, and Audio subfolders to prevent clutter.
 * **Collection Search:** A dedicated search route to discover and browse user-curated collections globally across the Internet Archive.
 * **Binge-Watching / Auto-Play Queue:** Added a threaded background tracker that automatically queues up the next episode or track in a playlist sequence.
 * **Smart Stream Selection:** Replaced raw file dumps with a clean selection menu. The addon now extracts and displays resolution, file size, and source format.
-* **Expanded Settings UI:** A massive settings overhaul allows you to set preferred video/audio formats, cap maximum resolutions, enable/disable auto-play, and configure manual or automatic collection overrides.
+* **Expanded Settings UI:** A massive settings overhaul allows you to set preferred video/audio formats, cap maximum resolutions, enable/disable auto-play, and easily restore your collections back to their default factory settings. 
 * **Custom Visuals:** Added a native Kodi splash screen on startup to improve the aesthetic experience.
 
 #### <a id="optimizations"></a>Under-the-Hood Optimizations
@@ -50,6 +50,7 @@ In the spirit of open-source transparency, please note that the addons in this r
 * **cURL Pipe Injection:** Streaming URLs are now injected with `|Connection=keep-alive&Timeout=60` to enforce persistent connections and prevent arbitrary dropouts. They also utilize transparent User-Agent spoofing to bypass backend throttling.
 * **Intelligent Server Routing:** Integrated a 3-second network fallback loop to intelligently bypass dead or unresponsive Archive.org data servers before stream failures occur.
 * **Continuous Memory Inheritance:** Playlist queues automatically inherit your specific format, resolution, and source preferences to ensure seamless auto-advancing across episodes.
+* **Native Resume Support:** Utilizes modern `InfoTagVideo` metadata tags to bypass forced starts and organically trigger Kodi's built-in "Resume" dialog prompts in v20+. 
 * **DVD ISO Playback Optimization:** Explicitly sets the MIME type to `application/x-iso9660-image` and disables Kodi's internal network probe on ISO files, completely eliminating pre-buffer freezing. Automated playlist queueing is explicitly disabled for ISO targets.
 * **Episode Identification Regex:** The addon uses pre-compiled regex parameters to parse standard TV episode formats (e.g., S01E02) out of chaotic raw filenames.
 * **Performance Enhancements:** Migrated to modern f-strings, implemented safe Kodi version parsing via the official API, and heavily optimized the local cache retrieval logic.
@@ -82,28 +83,27 @@ The main menu is your starting point and is divided into specific functional rou
 * **Continue Watching:** Access your locally saved resume points to instantly pick up videos exactly where you left off.
 * **Search Movies, TV Shows, Audio:** These are dedicated search tools curated to find your specified media. 
 * **Search Collections:** A dedicated search tool used strictly to find user-created metadata vaults (Collections) across the entire Archive.
-* **Favorite Collections:** A quick-access hub containing any collections you have manually saved.
+* **Favorite Collections:** A quick-access hub containing any collections you have manually saved, sorted cleanly into specific media categories.
 
 ### 2. Finding & Favoriting Collections
 The Internet Archive is built on "Collections" (folders containing specific types of media). 
 * **Searching for Collections:** Select the **Search Collections** option from the main menu to look for specific themes or curators (e.g., searching "Laserdisc" will return vaults specifically dedicated to laserdisc rips). You can also browse the popular collections section.
-* **Favoriting Collections:** Once you find a collection you want to keep track of, highlight it, open the Kodi Context Menu (usually 'C' on a keyboard, or long-press the 'OK' button on a remote), and select **Save to Favorite Collections**. This saves it directly to your main menu for permanent quick access.
+* **Favoriting Collections:** Once you find a collection you want to keep track of, highlight it, open the Kodi Context Menu (usually 'C' on a keyboard, or long-press the 'OK' button on a remote), and choose to save it to your Movie, TV, or Audio Collections. This sends the collection to its respective subfolder in your favorites for permanent quick access. 
 
 ### 3. Search Optimization
 To get the absolute best results when searching for specific media files:
 * **Contextual Searching:** Always initiate your search from within the relevant hub. Searching for a film inside the **Movies** hub will automatically filter out text files, images, and audio tracks, and will apply duration logic to hide short promo clips.
-* **Targeting specific Vaults:** When you initiate a keyword search, the addon will ask you which collection you want to search inside. **Any collection you have saved to your "Favorite Collections" will automatically populate in this selection menu.** This allows you to specifically search for a movie *only* within your favorite high-quality vaults.
+* **Targeting specific Vaults:** When you initiate a keyword search, the addon will ask you which collection you want to search inside. Any collection you have saved to your "Favorite Collections" for that corresponding category will automatically populate in this selection menu. This allows you to specifically search for a movie *only* within your custom high-quality vaults.
 * **The Global Bypass:** If you cannot find what you are looking for in the curated lists, select the **None (Global Bypass)** option when asked where to search. This completely strips all specified collections and searches the entire Internet Archive database for your keyword.
 
 ### 4. Configuring Settings
 You can fine-tune the addon's performance to match your hardware and network speed by opening the Add-on Settings:
 * **Playback Preferences:** Hardcode your preferred video and audio formats (e.g., MP4 vs. MKV). You can also set a maximum resolution cap (like 720p or 1080p), which is highly recommended for slower internet connections.
-* **Default Collections:** Choose which curated Archive vaults are used by default when searching for Movies, TV Shows, or Audio.
+* **Default Collections:** Choose to default your searches to either the Global Bypass (None) or All Curated Collections for Movies, TV Shows, and Audio.
 * **Auto-Play Next Episode/Track:** Toggle the background playlist queueing system on or off. When enabled, the addon will automatically track your quality preferences based on the first file selected and continuously play the next episode or track in a list.
 * **Auto-Select Best Stream:** Toggle to automatically select your preferred file format. Playback will fallback to the next available format if the preferred format is unavailable. 
 * **Auto-Select Search Collection:** Toggle to bypass the collections selection menu when searching. The addon will instead automatically route your query to your designated Default Collections.
-* **Collection Overrides:** For advanced users, enable manual overrides and input specific Archive identifiers to permanently bypass default routing behaviors for various hubs.
-* **Maintenance & Debugging:** Adjust network timeout limits, clear the addon's local cache, or enable debug logging for troubleshooting.
+* **Maintenance & Debugging:** Adjust network timeout limits, clear the addon's local cache, restore your collections to default settings, or enable debug logging for troubleshooting.
 
 ---
 

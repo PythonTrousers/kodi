@@ -23,7 +23,6 @@
 import json
 import re
 import sys
-import threading
 import random
 import urllib.parse
 import urllib.request
@@ -65,6 +64,41 @@ if not xbmcvfs.exists(_addonpath + 'settings.xml'):
     _addon.openSettings()
 
 
+class IATPlayer(xbmc.Player):
+    """
+    Custom Player subclass to safely handle Kodi's internal playback events
+    for accurate resume point tracking and playlist auto-advancing.
+    """
+    def __init__(self, item_id, ep_tag, resume_title, content_type, main_instance):
+        super().__init__()
+        self.item_id = item_id
+        self.ep_tag = ep_tag
+        self.resume_title = resume_title
+        self.content_type = content_type
+        self.main_instance = main_instance
+        self.last_known_time = 0.0
+        self.is_active = True
+
+    def onPlayBackEnded(self):
+        # Media finished completely natively (or playlist advanced). Wipe the resume tag.
+        self.main_instance._remove_resume(self.item_id, self.ep_tag)
+        self.is_active = False
+
+    def onPlayBackStopped(self):
+        # Attempt immediate fallback capture of time in case player is still responding
+        try:
+            current_time = self.getTime()
+            if current_time > 0:
+                self.last_known_time = current_time
+        except Exception:
+            pass
+
+        # User manually stopped media early. Save the safely cached resume point.
+        if self.last_known_time > 0:
+            self.main_instance._save_resume(self.item_id, self.ep_tag, self.resume_title, self.content_type, float(self.last_known_time))
+        self.is_active = False
+
+
 class Main(object):
     def __init__(self):
         self.base_url = 'https://archive.org/'
@@ -87,9 +121,9 @@ class Main(object):
         self.video_markers = ['mp4', 'mkv', 'avi', 'mov', 'm4v', 'h.264', 'h264', 'mpeg', 'matroska', 'vp8', 'vp9', 'webm', 'vob', 'iso', 'wmv', 'mpg', 'flv', 'm2ts', 'ts', 'ogv']
         self.audio_markers = ['mp3', 'flac', 'ogg', 'm4a', 'wav', 'vorbis', 'audio', 'opus', 'aac', 'wma', 'aiff', 'aif', 'shn', 'm4b', 'ape', 'wv', 'iso']
 
-        # Static collections definitions for DRY architecture
+        # Static collections definitions (Used for initial seeding and UI shortcuts)
         self.cat_video = [
-            ("opensource_movies", "Community Video (Default)", "General video and movie uploads"),
+            ("opensource_movies", "Community Video", "General video and movie uploads"),
             ("dvdtray", "DVD Tray", "Full DVD ISO backups"),
             ("vhsvault", "The VHS Vault", "Raw VHS captures and preservation"),
             ("television_inbox", "Unsorted Television", "Raw TV captures"),
@@ -104,7 +138,7 @@ class Main(object):
             ("bmovies", "B-Movies", "B-movie classics")
         ]
         self.cat_movie = [
-            ("opensource_movies", "Community Video (Default)"),
+            ("opensource_movies", "Community Video"),
             ("dvdtray", "DVD Tray"),
             ("vhsvault", "The VHS Vault"),
             ("laserdiscs", "Laserdisc Archive"),
@@ -116,7 +150,7 @@ class Main(object):
             ("bmovies", "B-Movies")
         ]
         self.cat_tv = [
-            ("opensource_movies", "Community Video (Default)"),
+            ("opensource_movies", "Community Video"),
             ("television_inbox", "Unsorted Television"),
             ("dvdtray", "DVD Tray"),
             ("vhsvault", "The VHS Vault"),
@@ -128,7 +162,7 @@ class Main(object):
             ("laserdiscs", "Laserdisc Archive")
         ]
         self.cat_audio = [
-            ("opensource_audio", "Community Audio (Default)", "Uncurated audio and music uploads"),
+            ("opensource_audio", "Community Audio", "Uncurated audio and music uploads"),
             ("album_recordings", "Long Playing Records (Vinyl)", "Vinyl LP preservation project"),
             ("folksoundomy_music", "Folksoundomy Music", "Full albums and soundboards"),
             ("audio_music", "Music, Arts & Culture", "General music collection"),
@@ -157,10 +191,13 @@ class Main(object):
         elif action == 'list_favorite_collections':
             self.list_favorite_collections(content_type)
         elif action == 'add_favorite_collection':
-            self._save_favorite_collection(self.parameters('target'), urllib.parse.unquote(self.parameters('title')))
+            self._save_favorite_collection(self.parameters('category'), self.parameters('target'), urllib.parse.unquote(self.parameters('title')))
         elif action == 'remove_favorite_collection':
-            self._remove_favorite_collection(self.parameters('target'))
+            self._remove_favorite_collection(self.parameters('category'), self.parameters('target'))
             xbmc.executebuiltin("Container.Refresh")
+        elif action == 'restore_defaults':
+            if xbmcgui.Dialog().yesno(_plugin, "Are you sure you want to restore all collections to their default settings? This will erase custom collections."):
+                self._restore_defaults()
         elif action == 'expand_item':
             item_id = self.parameters('target')
             self.expand_item(item_id, content_type)
@@ -299,34 +336,60 @@ class Main(object):
         with open(hist_file, 'w', encoding='utf-8') as f:
             json.dump([], f)
 
+    def _seed_favorites(self):
+        return {
+            "movie": [{"slug": s, "title": t} for s, t in self.cat_movie],
+            "tv": [{"slug": s, "title": t} for s, t in self.cat_tv],
+            "audio": [{"slug": s, "title": t} for s, t, p in self.cat_audio]
+        }
+
     def _get_favorites(self):
         fav_file = xbmcvfs.translatePath(f"{_addonpath}favorite_collections.json")
         if xbmcvfs.exists(fav_file):
             try:
                 with open(fav_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if isinstance(data, dict) and "movie" in data:
+                        return data
             except Exception:
-                return []
-        return []
+                pass
+        
+        # Seed and generate missing/corrupt dictionary
+        favs = self._seed_favorites()
+        with open(fav_file, 'w', encoding='utf-8') as f:
+            json.dump(favs, f)
+        return favs
 
-    def _save_favorite_collection(self, slug, title):
+    def _save_favorite_collection(self, category, slug, title):
         favs = self._get_favorites()
-        if any(f['slug'] == slug for f in favs):
-            xbmcgui.Dialog().notification(_plugin, "Collection already in Favorites.", _icon, 2000, False)
+        if category not in favs:
+            favs[category] = []
+            
+        if any(f['slug'] == slug for f in favs[category]):
+            xbmcgui.Dialog().notification(_plugin, f"Already in {category.capitalize()} Favorites.", _icon, 2000, False)
             return
-        favs.append({'slug': slug, 'title': title})
+            
+        favs[category].append({'slug': slug, 'title': title})
         fav_file = xbmcvfs.translatePath(f"{_addonpath}favorite_collections.json")
         with open(fav_file, 'w', encoding='utf-8') as f:
             json.dump(favs, f)
-        xbmcgui.Dialog().notification(_plugin, "Added to Favorites.", _icon, 2000, False)
+        xbmcgui.Dialog().notification(_plugin, f"Saved to {category.capitalize()} Favorites.", _icon, 2000, False)
 
-    def _remove_favorite_collection(self, slug):
+    def _remove_favorite_collection(self, category, slug):
         favs = self._get_favorites()
-        favs = [f for f in favs if f['slug'] != slug]
+        if category in favs:
+            favs[category] = [f for f in favs[category] if f['slug'] != slug]
+            fav_file = xbmcvfs.translatePath(f"{_addonpath}favorite_collections.json")
+            with open(fav_file, 'w', encoding='utf-8') as f:
+                json.dump(favs, f)
+            xbmcgui.Dialog().notification(_plugin, "Removed from Favorites.", _icon, 2000, False)
+
+    def _restore_defaults(self):
         fav_file = xbmcvfs.translatePath(f"{_addonpath}favorite_collections.json")
+        favs = self._seed_favorites()
         with open(fav_file, 'w', encoding='utf-8') as f:
             json.dump(favs, f)
-        xbmcgui.Dialog().notification(_plugin, "Removed from Favorites.", _icon, 2000, False)
+        xbmcgui.Dialog().notification(_plugin, "Collections restored to defaults.", _icon, 3000, False)
 
     def _get_resume(self):
         res_file = xbmcvfs.translatePath(f"{_addonpath}resume_data.json")
@@ -477,6 +540,13 @@ class Main(object):
             listitem.setArt({'fanart': _fanart})
             listitem.setProperty('IsPlayable', 'true')
             
+            time_pos = data.get('time', 0.0)
+            if time_pos > 0:
+                if _kodiver >= 20.0 and data['content_type'] == 'video':
+                    listitem.getVideoInfoTag().setResumePoint(float(time_pos))
+                else:
+                    listitem.setProperty('resumetime', str(time_pos))
+            
             ctx_url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                 'action': 'remove_resume',
                 'target': data['item_id'],
@@ -499,26 +569,55 @@ class Main(object):
         xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
     def list_favorite_collections(self, content_type):
+        fav_category = self.parameters('fav_category')
+        
+        # Sub-folder Routing
+        if not fav_category:
+            folders = [
+                ("Movie Collections", "movie", "video"),
+                ("TV Collections", "tv", "video"),
+                ("Audio & Music Collections", "audio", "audio")
+            ]
+            items_to_add = []
+            for title, cat, c_type in folders:
+                listitem = xbmcgui.ListItem(title)
+                listitem.setArt({'icon': 'DefaultFolder.png', 'thumb': 'DefaultFolder.png', 'fanart': _fanart})
+                url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                    'action': 'list_favorite_collections',
+                    'fav_category': cat,
+                    'content_type': c_type
+                })
+                items_to_add.append((url, listitem, True))
+            
+            xbmcplugin.addDirectoryItems(int(sys.argv[1]), items_to_add)
+            xbmcplugin.setContent(int(sys.argv[1]), 'files')
+            xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+            return
+
+        # Fetch Category Lists
         favs = self._get_favorites()
-        if not favs:
-            xbmcgui.Dialog().notification(_plugin, "No favorited collections found.", _icon, 3000, False)
+        category_list = favs.get(fav_category, [])
+        
+        if not category_list:
+            xbmcgui.Dialog().notification(_plugin, f"No favorited {fav_category} collections found.", _icon, 3000, False)
             xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
             return
             
         items_to_add = []
-        for f in favs:
-            listitem = xbmcgui.ListItem(f"[COLOR gold]{f['title']}[/COLOR]")
+        for f in category_list:
+            listitem = xbmcgui.ListItem(f"{f['title']}")
             listitem.setArt({'icon': self.img_path + f['slug'], 'thumb': self.img_path + f['slug'], 'fanart': _fanart})
             listitem.setProperty('IsPlayable', 'false')
             
-            ctx_url = f"{sys.argv[0]}?action=remove_favorite_collection&target={f['slug']}"
+            ctx_url = f"{sys.argv[0]}?action=remove_favorite_collection&category={fav_category}&target={f['slug']}"
             listitem.addContextMenuItems([('Remove from Favorites', f"RunPlugin({ctx_url})")])
             
             url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                 'action': 'list_items',
                 'page': 1,
                 'target': f['slug'],
-                'content_type': content_type
+                'content_type': content_type,
+                'search_type': fav_category
             })
             items_to_add.append((url, listitem, True))
             
@@ -578,25 +677,6 @@ class Main(object):
                 return
                 
             items_to_add = []
-            
-            if page == 1:
-                shortcuts = self.cat_video if content_type == 'video' else self.cat_audio
-                for slug, title, plot in shortcuts:
-                    labels = {
-                        'title': title,
-                        'plot' if content_type == 'video' else 'comment': plot
-                    }
-                    listitem = self.make_listitem(labels, content_type)
-                    listitem.setArt({'icon': _icon, 'thumb': _icon, 'fanart': _fanart})
-                    listitem.setProperty('IsPlayable', 'false')
-                    url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
-                        'action': 'list_items',
-                        'page': 1,
-                        'target': slug,
-                        'content_type': content_type,
-                        'search_type': search_type
-                    })
-                    items_to_add.append((url, listitem, True))
                 
             for item in items:
                 fields = item.get('fields', {})
@@ -624,8 +704,12 @@ class Main(object):
                 listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
                 listitem.setProperty('IsPlayable', 'false')
                 
-                ctx_url = f"{sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}"
-                listitem.addContextMenuItems([('Save to Favorite Collections', f"RunPlugin({ctx_url})")])
+                ctx_items = [
+                    ('Save to Movie Collections', f"RunPlugin({sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}&category=movie)"),
+                    ('Save to TV Collections', f"RunPlugin({sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}&category=tv)"),
+                    ('Save to Audio Collections', f"RunPlugin({sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}&category=audio)")
+                ]
+                listitem.addContextMenuItems(ctx_items)
                 
                 url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                     'action': 'list_items',
@@ -703,8 +787,12 @@ class Main(object):
                 listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
                 listitem.setProperty('IsPlayable', 'false')
                 
-                ctx_url = f"{sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}"
-                listitem.addContextMenuItems([('Save to Favorite Collections', f"RunPlugin({ctx_url})")])
+                ctx_items = [
+                    ('Save to Movie Collections', f"RunPlugin({sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}&category=movie)"),
+                    ('Save to TV Collections', f"RunPlugin({sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}&category=tv)"),
+                    ('Save to Audio Collections', f"RunPlugin({sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}&category=audio)")
+                ]
+                listitem.addContextMenuItems(ctx_items)
                 
                 url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                     'action': 'list_items', 'page': 1, 'target': slug, 'content_type': content_type
@@ -819,32 +907,23 @@ class Main(object):
         search_type = self.parameters('search_type') or 'video'
         prefilled_keyword = urllib.parse.unquote(self.parameters('keyword'))
         
-        collections = []
         favs = self._get_favorites()
 
         if search_type == 'movie':
-            base_cols = [(title, slug) for slug, title in self.cat_movie]
-            for f in favs:
-                if not any(b[1] == f['slug'] for b in base_cols):
-                    base_cols.insert(0, (f"[COLOR gold]{f['title']}[/COLOR]", f['slug']))
+            base_cols = [(f['title'], f['slug']) for f in favs.get('movie', [])]
             collections = [("None (Search All of Internet Archive)", "none"), ("All Curated Collections", "all")] + base_cols
             heading = "Search Movies"
         elif search_type == 'tv':
-            base_cols = [(title, slug) for slug, title in self.cat_tv]
-            for f in favs:
-                if not any(b[1] == f['slug'] for b in base_cols):
-                    base_cols.insert(0, (f"[COLOR gold]{f['title']}[/COLOR]", f['slug']))
+            base_cols = [(f['title'], f['slug']) for f in favs.get('tv', [])]
             collections = [("None (Search All of Internet Archive)", "none"), ("All Curated Collections", "all")] + base_cols
             heading = "Search TV Shows"
         elif search_type == 'audio':
-            base_cols = [(title, slug) for slug, title, plot in self.cat_audio]
-            for f in favs:
-                if not any(b[1] == f['slug'] for b in base_cols):
-                    base_cols.insert(0, (f"[COLOR gold]{f['title']}[/COLOR]", f['slug']))
+            base_cols = [(f['title'], f['slug']) for f in favs.get('audio', [])]
             collections = [("None (Search All of Internet Archive)", "none"), ("All Curated Collections", "all")] + base_cols
             heading = "Search Audio & Music"
         else:
             heading = f"Search {content_type.capitalize()}"
+            collections = [("None (Search All of Internet Archive)", "none"), ("All Curated Collections", "all")]
             
         if prefilled_keyword:
             search_text = prefilled_keyword
@@ -864,35 +943,24 @@ class Main(object):
         
         collection_str = ""
         auto_select_col = _settings('auto_select_collection') == 'true'
-        manual_override = _settings('manual_collection_override') == 'true'
         
-        if manual_override:
+        if auto_select_col:
             if search_type == 'movie':
-                collection_str = _settings('manual_movie_col')
+                collection_str = _settings('default_movie_collection') or 'all'
             elif search_type == 'tv':
-                collection_str = _settings('manual_tv_col')
+                collection_str = _settings('default_tv_collection') or 'all'
             else:
-                collection_str = _settings('manual_audio_col')
-                
-            if not collection_str.strip():
-                collection_str = "opensource_movies" if content_type == 'video' else "opensource_audio"
-        elif auto_select_col:
-            if search_type == 'movie':
-                collection_str = _settings('default_movie_collection') or 'opensource_movies'
-            elif search_type == 'tv':
-                collection_str = _settings('default_tv_collection') or 'opensource_movies'
-            else:
-                collection_str = _settings('default_audio_collection') or 'opensource_audio'
+                collection_str = _settings('default_audio_collection') or 'all'
         elif collections:
             col_names = [c[0] for c in collections]
-            selected_indices = xbmcgui.Dialog().multiselect("Select Collections (Default)", col_names)
+            selected_indices = xbmcgui.Dialog().multiselect("Select Collections", col_names)
             
             if selected_indices is None:
                 xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
                 return
                 
             if not selected_indices:
-                collection_str = "opensource_movies" if content_type == 'video' else "opensource_audio"
+                collection_str = "all"
             else:
                 selected_slugs = [collections[i][1] for i in selected_indices]
                 if "none" in selected_slugs:
@@ -928,28 +996,18 @@ class Main(object):
         # 1. Routing Trap Fix & Global Assignment
         if not collection_str:
             if search_type == 'movie':
-                collection_str = _settings('default_movie_collection') or 'opensource_movies'
+                collection_str = _settings('default_movie_collection') or 'all'
             elif search_type == 'tv':
-                collection_str = _settings('default_tv_collection') or 'opensource_movies'
+                collection_str = _settings('default_tv_collection') or 'all'
             else:
-                collection_str = _settings('default_audio_collection') or 'opensource_audio'
+                collection_str = _settings('default_audio_collection') or 'all'
                 
         # 2. Collection Injection (Bypassed if not targeted)
         if collection_str == "none":
             pass # Search everything globally, bypassing collection filters entirely
         elif collection_str == "all":
-            cols = []
-            if search_type == 'movie':
-                cols = [c[0] for c in self.cat_movie]
-            elif search_type == 'tv':
-                cols = [c[0] for c in self.cat_tv]
-            elif search_type == 'audio':
-                cols = [c[0] for c in self.cat_audio]
-            
             favs = self._get_favorites()
-            cols.extend([f['slug'] for f in favs])
-            cols = list(set(cols))
-            
+            cols = [f['slug'] for f in favs.get(search_type, [])]
             if cols:
                 f_map["collection"] = {c: "inc" for c in cols}
         elif collection_str != "none":
@@ -1122,12 +1180,20 @@ class Main(object):
             display_title = f"{clean_title} ({format_str})"
             
             res_key = f"{item_id}_{tag}"
+            time_pos = 0.0
             if res_key in res_data:
                 display_title = f"{display_title} [I](Resume)[/I]"
+                time_pos = res_data[res_key].get('time', 0.0)
             
             listitem = self.make_listitem({'title': display_title}, content_type)
             listitem.setArt({'fanart': _fanart})
             listitem.setProperty('IsPlayable', 'true')
+            
+            if time_pos > 0:
+                if _kodiver >= 20.0 and content_type == 'video':
+                    listitem.getVideoInfoTag().setResumePoint(float(time_pos))
+                else:
+                    listitem.setProperty('resumetime', str(time_pos))
             
             url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                 'action': 'play_video',
@@ -1353,9 +1419,14 @@ class Main(object):
         if res_key in res_data:
             time_pos = res_data[res_key].get('time', 0.0)
             if time_pos > 0:
-                li.setProperty('StartOffset', str(time_pos))
-                li.setProperty('ResumeTime', '0')
+                if _kodiver >= 20.0 and content_type == 'video':
+                    li.getVideoInfoTag().setResumePoint(float(time_pos))
+                else:
+                    li.setProperty('resumetime', str(time_pos))
 
+        # Initialize the event-driven custom player instance
+        player = IATPlayer(item_id, ep_tag, resume_title, content_type, self)
+        
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem=li)
         
         remaining_tags = []
@@ -1388,35 +1459,43 @@ class Main(object):
                     q_li = self.make_listitem({'title': r_tag}, content_type)
                     q_li.setArt({'fanart': _fanart})
                     playlist.add(url=q_url, listitem=q_li)
-                
-        def background_tracker():
-            player = xbmc.Player()
-            monitor = xbmc.Monitor()
-            if monitor.waitForAbort(5.0): return
-            
-            last_time_pos = 0
-            last_pct = 0.0
-            
-            while player.isPlaying() and not monitor.abortRequested():
-                try:
-                    time_pos = player.getTime()
-                    total = player.getTotalTime()
-                    if total > 0:
-                        last_time_pos = time_pos
-                        last_pct = time_pos / total
-                except Exception:
-                    pass
-                if monitor.waitForAbort(5.0): break
-                
-            if 0.03 < last_pct < 0.95:
-                self._save_resume(item_id, ep_tag, resume_title, content_type, last_time_pos)
-            elif last_pct >= 0.95:
-                self._remove_resume(item_id, ep_tag)
-                
+
+        # Main-Thread Tracking Loop Integration (Replaces dead background t2 thread)
         if content_type == 'video':
-            t2 = threading.Thread(target=background_tracker)
-            t2.daemon = True
-            t2.start()
+            monitor = xbmc.Monitor()
+            # Suspend the script for 2 seconds to allow the player to fully initialize before starting playback state assertions
+            monitor.waitForAbort(2.0)
+            cleared_threshold = False
+            
+            while player.is_active and not monitor.abortRequested():
+                try:
+                    if player.isPlaying():
+                        time_pos = player.getTime()
+                        total = player.getTotalTime()
+                        
+                        if total > 0:
+                            pct = time_pos / total
+                            
+                            # Keep track of time for early stops
+                            if 0.01 < pct < 0.95:
+                                player.last_known_time = time_pos
+                                
+                            # Proactive 95% threshold clearing before Native auto-advance destroys the player class
+                            elif pct >= 0.95 and not cleared_threshold:
+                                player.last_known_time = 0.0
+                                self._remove_resume(item_id, ep_tag)
+                                cleared_threshold = True
+                    else:
+                        # Player object transitioned via manual playlist forward without firing explicit stop
+                        break
+                except Exception:
+                    # Player was destroyed natively by Kodi
+                    break
+                    
+                # Suspend main thread to yield CPU to Kodi while keeping script variables alive
+                monitor.waitForAbort(1.0)
+            
+            player.is_active = False
 
     def parameters(self, arg):
         val = self.args.get(arg, '')

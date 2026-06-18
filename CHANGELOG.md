@@ -1,53 +1,63 @@
 # Patch Notes & Changelog
 
+## [0.3.1] - 2026-06-18
+### Collections Architecture, UI Overhaul & Resume Tracking
+Version 0.3.1 completely restructures how custom collections are saved and accessed. Hardcoded search arrays have been removed to give you full control over your curated environment, and the resume tracking system has been completely rewritten for optimal performance.
+
+**UI & Feature Additions**
+* **Categorized Favorites:** The favorites list has been updated to use a unified JSON dictionary, isolating saved vaults into distinct Movie, TV, and Audio subfolders.
+* **Targeted Context Menus:** The generic save option has been replaced with categorized context menus (Save to Movie/TV/Audio Collections) to route collections to the proper folder.
+* **Search Isolation:** Searches are now isolated, ensuring that TV show queries do not pull from Audio vaults, preventing cross-contamination.
+* **Default Seeding:** New installations now automatically generate the favorites file and seed it with the default Archive vaults so you are ready to go out of the box.
+
+**Settings, Configuration & Cleanup**
+* **Streamlined Defaults:** The default search collection settings are now restricted to either the "None" wildcard or "All Curated Collections".
+* **Overrides Deprecated:** Manual collection ID text inputs and toggles have been removed entirely, as the new dynamic favorites architecture makes them obsolete.
+* **Restore Defaults:** Added a "Restore Default Collections" action button under Advanced Settings to easily reset customized arrays back to factory defaults.
+* **UI Text Cleanup:** Removed hardcoded "(Default)" labels from the core static arrays and the multi-select search dialog.
+* **Popular Collections Overhaul:** Removed forcefully injected hardcoded shortcuts from the Popular Collections view, allowing the menu to display purely organic, API-driven results.
+
+**Playback & Performance Optimizations**
+* **Native Kodi Resume Integration:** Replaced forced start offsets with `InfoTagVideo.setResumePoint()` to fully support Kodi's native "Resume from X:XX" dialog prompts in Kodi v20+.
+* **Event-Driven Resume Tracker:** Completely replaced the aggressive background polling loop with a custom `IATPlayer` subclass. The script now natively hooks into Kodi's `onPlayBackEnded` and `onPlayBackStopped` events to perfectly handle playlist auto-advancing and manual exits.
+* **Silent Cache Loop:** Introduced an ultra-low-overhead 60-second silent caching loop to protect your resume progress against Kodi's aggressive player teardown sequences.
+
 ## [0.3.0] - 2026-06-17
 ### Internet Archive Theater (IAT) Major Update
 Version 0.3.0 implements major structural refactors, a brand-new collection search system, intelligent server routing, and comprehensive local storage capabilities. 
 
 **UI & Feature Additions**
-* **Collection Search:** 
-  * Replaced the generic "Search All Videos" menu route.
+* **Collection Search:** * Replaced the generic "Search All Videos" menu route.
   * Added dynamic "Search Collections" and "Favorite Collections" targets.
-* **Favorite Collections System:** 
-  * Implemented local JSON data management.
+* **Favorite Collections System:** * Implemented local JSON data management.
   * Enables users to save custom curations for quick access.
-* **Smart Search Routing:** 
-  * Dynamically populates the UI selection array from class properties and user favorites.
+* **Smart Search Routing:** * Dynamically populates the UI selection array from class properties and user favorites.
   * Integrated "None" wildcard and "All Curated Collections" options.
-* **Collection History:** 
-  * Added conditional routing to `list_history`.
+* **Collection History:** * Added conditional routing to `list_history`.
   * Correctly identifies and relaunches successfully saved "collection" searches.
 
 **Playback & Networking Optimizations**
-* **Intelligent Server Fallback:** 
-  * Integrated a 3-second `urllib.request` node fallback loop.
+* **Intelligent Server Fallback:** * Integrated a 3-second `urllib.request` node fallback loop.
   * Gracefully skips dead Archive.org servers before crashing the stream.
-* **Continuous Playlist Memory:** 
-  * Playlist queues now actively inherit your specific settings.
+* **Continuous Playlist Memory:** * Playlist queues now actively inherit your specific settings.
   * Locks in `pref_ext`, `pref_height`, and `pref_source` for flawless auto-advancing.
-* **DVD ISO Special Handling:** 
-  * Added `.iso` support to audio arrays.
+* **DVD ISO Special Handling:** * Added `.iso` support to audio arrays.
   * Explicitly disabled automated queue generation for ISO targets to prevent UI lockups.
   * Disabled Kodi `ContentLookup` and set explicit MIME types for rapid ISO parsing.
-* **Proxy Headers:** 
-  * Appended strict `User-Agent` and `Keep-Alive` proxy headers to backend requests.
+* **Proxy Headers:** * Appended strict `User-Agent` and `Keep-Alive` proxy headers to backend requests.
   * Effectively bypasses persistent backend throttling limitations.
 
 **Under-the-Hood Structural Fixes**
-* **Class Migration:** 
-  * Migrated static collection definitions (`cat_video`, `cat_movie`, etc.).
+* **Class Migration:** * Migrated static collection definitions (`cat_video`, `cat_movie`, etc.).
   * Integrated directly into `__init__` class properties for global access.
-* **API Communicator:** 
-  * Created a unified `fetch_archive_metadata` handler.
+* **API Communicator:** * Created a unified `fetch_archive_metadata` handler.
   * Actively prevents `HTTP 400` errors by safely stripping empty `filter_map` parameters.
-* **Math Fix:** 
-  * Corrected a loop indentation bug inside `format_bytes`.
+* **Math Fix:** * Corrected a loop indentation bug inside `format_bytes`.
   * Accurately calculates and stringifies MB/GB file sizes in the UI.
 
 ## Repository Generator Tools
 ### Build Script Updates (`_generator.py`)
-* **Automated Cleanups:** 
-  * Updated `create_zip` and `sync_root_zip` functions.
+* **Automated Cleanups:** * Updated `create_zip` and `sync_root_zip` functions.
   * Dynamically sweeps directories and deletes pre-existing `.zip` files before packaging.
   * Ensures only the current iteration dictated by `addon.xml` is maintained.
 
