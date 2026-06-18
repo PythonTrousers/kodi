@@ -27,6 +27,16 @@ class Generator:
             zip_name = f"{folder}-{version}.zip"
             zip_path = os.path.join(folder, zip_name)
             
+            # --- Cleanup Sweep: Remove any existing .zip files in the folder ---
+            for file in os.listdir(folder):
+                if file.endswith('.zip'):
+                    old_zip_path = os.path.join(folder, file)
+                    try:
+                        os.remove(old_zip_path)
+                        print(f"Removed outdated archive: {old_zip_path}")
+                    except Exception as e:
+                        print(f"Error removing old zip {old_zip_path}: {e}")
+            
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 for root, _, files in os.walk(folder):
                     for file in files:
@@ -84,6 +94,15 @@ class Generator:
                 dest_zip = os.path.join(".", zip_name)
                 
                 if os.path.exists(source_zip):
+                    # --- Cleanup Sweep: Remove outdated repository zips in root ---
+                    for file in os.listdir("."):
+                        if file.startswith(repo_folder) and file.endswith('.zip') and file != zip_name:
+                            try:
+                                os.remove(file)
+                                print(f"Removed outdated root archive: {file}")
+                            except Exception as e:
+                                pass
+                                
                     shutil.copy2(source_zip, dest_zip)
                     print(f"Successfully synced root installation zip: {dest_zip}")
             except Exception as e:

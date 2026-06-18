@@ -83,9 +83,60 @@ class Main(object):
         
         # Revert to standard lists for reliable substring matching
         self.video_exts = ('.mp4', '.mkv', '.avi', '.mov', '.m4v', '.vob', '.iso', '.wmv', '.mpg', '.mpeg', '.flv', '.m2ts', '.ts', '.webm', '.ogv')
-        self.audio_exts = ('.mp3', '.flac', '.ogg', '.m4a', '.wav', '.opus', '.aac', '.wma', '.aiff', '.aif', '.shn', '.m4b', '.ape', '.wv')
+        self.audio_exts = ('.mp3', '.flac', '.ogg', '.m4a', '.wav', '.opus', '.aac', '.wma', '.aiff', '.aif', '.shn', '.m4b', '.ape', '.wv', '.iso')
         self.video_markers = ['mp4', 'mkv', 'avi', 'mov', 'm4v', 'h.264', 'h264', 'mpeg', 'matroska', 'vp8', 'vp9', 'webm', 'vob', 'iso', 'wmv', 'mpg', 'flv', 'm2ts', 'ts', 'ogv']
-        self.audio_markers = ['mp3', 'flac', 'ogg', 'm4a', 'wav', 'vorbis', 'audio', 'opus', 'aac', 'wma', 'aiff', 'aif', 'shn', 'm4b', 'ape', 'wv']
+        self.audio_markers = ['mp3', 'flac', 'ogg', 'm4a', 'wav', 'vorbis', 'audio', 'opus', 'aac', 'wma', 'aiff', 'aif', 'shn', 'm4b', 'ape', 'wv', 'iso']
+
+        # Static collections definitions for DRY architecture
+        self.cat_video = [
+            ("opensource_movies", "Community Video (Default)", "General video and movie uploads"),
+            ("dvdtray", "DVD Tray", "Full DVD ISO backups"),
+            ("vhsvault", "The VHS Vault", "Raw VHS captures and preservation"),
+            ("television_inbox", "Unsorted Television", "Raw TV captures"),
+            ("laserdiscs", "Laserdisc Archive", "High quality laserdisc rips"),
+            ("feature_films", "Feature Films", "Classic full length movies"),
+            ("anime", "The Anime Cascade", "Anime episodes and series"),
+            ("animationandcartoons", "Animation & Cartoons", "Classic cartoons"),
+            ("classic_tv", "Classic TV", "Vintage television broadcasts"),
+            ("SciFi_Horror", "Sci-Fi / Horror", "Sci-Fi and Horror films"),
+            ("comedy_films", "Comedy Films", "Comedy films"),
+            ("film_noir", "Film Noir", "Classic film noir"),
+            ("bmovies", "B-Movies", "B-movie classics")
+        ]
+        self.cat_movie = [
+            ("opensource_movies", "Community Video (Default)"),
+            ("dvdtray", "DVD Tray"),
+            ("vhsvault", "The VHS Vault"),
+            ("laserdiscs", "Laserdisc Archive"),
+            ("feature_films", "Feature Films"),
+            ("animationandcartoons", "Animation & Cartoons"),
+            ("SciFi_Horror", "Sci-Fi / Horror"),
+            ("comedy_films", "Comedy Films"),
+            ("film_noir", "Film Noir"),
+            ("bmovies", "B-Movies")
+        ]
+        self.cat_tv = [
+            ("opensource_movies", "Community Video (Default)"),
+            ("television_inbox", "Unsorted Television"),
+            ("dvdtray", "DVD Tray"),
+            ("vhsvault", "The VHS Vault"),
+            ("anime", "The Anime Cascade"),
+            ("animationandcartoons", "Animation & Cartoons"),
+            ("classic_tv", "Classic TV"),
+            ("tvarchive", "Television Archive"),
+            ("television", "Television"),
+            ("laserdiscs", "Laserdisc Archive")
+        ]
+        self.cat_audio = [
+            ("opensource_audio", "Community Audio (Default)", "Uncurated audio and music uploads"),
+            ("album_recordings", "Long Playing Records (Vinyl)", "Vinyl LP preservation project"),
+            ("folksoundomy_music", "Folksoundomy Music", "Full albums and soundboards"),
+            ("audio_music", "Music, Arts & Culture", "General music collection"),
+            ("etree", "Live Music Archive (Concerts)", "Lossless concert recordings"),
+            ("78rpm", "78 RPMs & Cylinder Recordings", "Vintage 78 RPM records"),
+            ("netlabels", "Netlabels (Indie Albums)", "Independent netlabel releases"),
+            ("podcasts", "Podcasts & Radio", "Podcasts and radio broadcasts")
+        ]
 
         # Prioritize URL parameters over asynchronous settings read to prevent race conditions
         content_type = self.parameters('content_type') or _settings('context')
@@ -101,6 +152,15 @@ class Main(object):
         elif action == 'list_collections':
             page = int(self.parameters('page') or 1)
             self.list_collections(page, content_type)
+        elif action == 'search_collection_menu':
+            self.search_collection_menu(content_type)
+        elif action == 'list_favorite_collections':
+            self.list_favorite_collections(content_type)
+        elif action == 'add_favorite_collection':
+            self._save_favorite_collection(self.parameters('target'), urllib.parse.unquote(self.parameters('title')))
+        elif action == 'remove_favorite_collection':
+            self._remove_favorite_collection(self.parameters('target'))
+            xbmc.executebuiltin("Container.Refresh")
         elif action == 'expand_item':
             item_id = self.parameters('target')
             self.expand_item(item_id, content_type)
@@ -144,9 +204,10 @@ class Main(object):
         category = [
             {'title': 'Continue Watching', 'key': 'continue'},
             {'title': 'Popular Collections', 'key': 'popular'},
+            {'title': 'Favorite Collections', 'key': 'fav_collections'},
+            {'title': 'Search Collections', 'key': 'search_collections'},
             {'title': 'Search Movies', 'key': 'search_movie'},
             {'title': 'Search TV Shows', 'key': 'search_tv'},
-            {'title': 'Search All Videos', 'key': 'search_general'},
             {'title': 'Search Audio & Music', 'key': 'search_audio'},
             {'title': 'Search History', 'key': 'history'},
             {'title': 'Clear Cache', 'key': 'cache'}
@@ -160,20 +221,22 @@ class Main(object):
             if i['key'] == 'cache':
                 url = f"{sys.argv[0]}?action=clear"
                 is_folder = False
-            elif i['key'].startswith('search_'):
+            elif i['key'].startswith('search_') and i['key'] != 'search_collections':
                 is_folder = False
             
             if i['key'] == 'search_movie':
                 url = f"{sys.argv[0]}?action=search&content_type=video&search_type=movie"
             elif i['key'] == 'search_tv':
                 url = f"{sys.argv[0]}?action=search&content_type=video&search_type=tv"
-            elif i['key'] == 'search_general':
-                url = f"{sys.argv[0]}?action=search&content_type=video&search_type=video"
             elif i['key'] == 'search_audio':
                 url = f"{sys.argv[0]}?action=search&content_type=audio&search_type=audio"
+            elif i['key'] == 'search_collections':
+                url = f"{sys.argv[0]}?action=search_collection_menu&content_type={content_type}"
+            elif i['key'] == 'fav_collections':
+                url = f"{sys.argv[0]}?action=list_favorite_collections&content_type={content_type}"
             elif i['key'] == 'history':
                 url = f"{sys.argv[0]}?action=search_history"
-                is_folder = True  # History renders a directory list
+                is_folder = True 
             elif i['key'] == 'continue':
                 url = f"{sys.argv[0]}?action=continue_watching"
             elif i['key'] == 'popular':
@@ -188,21 +251,13 @@ class Main(object):
     def show_splash_screen(self):
         if DEBUG:
             self.log('show_splash_screen()')
-        
-        try:
-            # WindowDialog overlays the screen without needing XML skin files
-            dialog = xbmcgui.WindowDialog()
             
-            # Standard Kodi coordinate system base is 1280x720. 
-            # Passing _fanart directly utilizes your existing fanart.jpg
+        try:
+            dialog = xbmcgui.WindowDialog()
             splash_image = xbmcgui.ControlImage(0, 0, 1280, 720, _fanart)
             dialog.addControl(splash_image)
-            
             dialog.show()
-            
-            # Pause the main thread briefly so the user actually sees the splash screen
             xbmc.sleep(1500) 
-            
         except Exception as e:
             self.log(f"Splash screen error: {str(e)}")
         finally:
@@ -211,7 +266,6 @@ class Main(object):
     # --- LOCAL DATA MANAGEMENT ---
 
     def _safe_int(self, val):
-        """Safely parse integers protecting against empty strings from the API"""
         try:
             return int(val)
         except (ValueError, TypeError):
@@ -230,7 +284,6 @@ class Main(object):
 
     def _save_history(self, keyword, content_type, search_type='video'):
         hist = self._get_history()
-        
         hist = [entry for entry in hist if not (entry.get('keyword', '').lower() == keyword.lower() and entry.get('search_type', 'video') == search_type)]
         
         entry = {'keyword': keyword, 'content_type': content_type, 'search_type': search_type}
@@ -245,6 +298,35 @@ class Main(object):
         hist_file = xbmcvfs.translatePath(f"{_addonpath}search_history.json")
         with open(hist_file, 'w', encoding='utf-8') as f:
             json.dump([], f)
+
+    def _get_favorites(self):
+        fav_file = xbmcvfs.translatePath(f"{_addonpath}favorite_collections.json")
+        if xbmcvfs.exists(fav_file):
+            try:
+                with open(fav_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                return []
+        return []
+
+    def _save_favorite_collection(self, slug, title):
+        favs = self._get_favorites()
+        if any(f['slug'] == slug for f in favs):
+            xbmcgui.Dialog().notification(_plugin, "Collection already in Favorites.", _icon, 2000, False)
+            return
+        favs.append({'slug': slug, 'title': title})
+        fav_file = xbmcvfs.translatePath(f"{_addonpath}favorite_collections.json")
+        with open(fav_file, 'w', encoding='utf-8') as f:
+            json.dump(favs, f)
+        xbmcgui.Dialog().notification(_plugin, "Added to Favorites.", _icon, 2000, False)
+
+    def _remove_favorite_collection(self, slug):
+        favs = self._get_favorites()
+        favs = [f for f in favs if f['slug'] != slug]
+        fav_file = xbmcvfs.translatePath(f"{_addonpath}favorite_collections.json")
+        with open(fav_file, 'w', encoding='utf-8') as f:
+            json.dump(favs, f)
+        xbmcgui.Dialog().notification(_plugin, "Removed from Favorites.", _icon, 2000, False)
 
     def _get_resume(self):
         res_file = xbmcvfs.translatePath(f"{_addonpath}resume_data.json")
@@ -325,10 +407,10 @@ class Main(object):
     def format_bytes(self, size):
         n = 0
         slabels = {0: 'B', 1: 'KB', 2: 'MB', 3: 'GB', 4: 'TB'}
-        while size > 1024:
-            size /= 1024
+        while size > 1024 and n < 4:
+            size /= 1024.0
             n += 1
-            return f"{size:.2f} {slabels.get(n, 'PB')}"
+        return f"{size:.2f} {slabels.get(n, 'PB')}"
 
     # --- UI VIEWS ---
 
@@ -345,20 +427,28 @@ class Main(object):
 
         for entry in hist:
             stype = entry.get('search_type', 'video')
-            stype_display = "TV" if stype == 'tv' else stype.capitalize()
             
-            title = f"{urllib.parse.unquote(entry['keyword'])} ({stype_display})"
+            if stype == 'collection':
+                stype_display = "Collection"
+                url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                    'action': 'search_collection_menu',
+                    'keyword': entry['keyword'],
+                    'content_type': entry['content_type']
+                })
+            else:
+                stype_display = "TV" if stype == 'tv' else stype.capitalize()
+                url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                    'action': 'search',
+                    'keyword': entry['keyword'],
+                    'content_type': entry['content_type'],
+                    'search_type': stype
+                })
                 
+            title = f"{urllib.parse.unquote(entry['keyword'])} ({stype_display})"
             listitem = xbmcgui.ListItem(title)
             listitem.setArt({'icon': _icon, 'fanart': _fanart})
             listitem.setProperty('IsPlayable', 'false')
             
-            url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
-                'action': 'search',
-                'keyword': entry['keyword'],
-                'content_type': entry['content_type'],
-                'search_type': stype
-            })
             items_to_add.append((url, listitem, True))
             
         if items_to_add:
@@ -408,6 +498,34 @@ class Main(object):
         xbmcplugin.setContent(int(sys.argv[1]), 'videos')
         xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
+    def list_favorite_collections(self, content_type):
+        favs = self._get_favorites()
+        if not favs:
+            xbmcgui.Dialog().notification(_plugin, "No favorited collections found.", _icon, 3000, False)
+            xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
+            return
+            
+        items_to_add = []
+        for f in favs:
+            listitem = xbmcgui.ListItem(f"[COLOR gold]{f['title']}[/COLOR]")
+            listitem.setArt({'icon': self.img_path + f['slug'], 'thumb': self.img_path + f['slug'], 'fanart': _fanart})
+            listitem.setProperty('IsPlayable', 'false')
+            
+            ctx_url = f"{sys.argv[0]}?action=remove_favorite_collection&target={f['slug']}"
+            listitem.addContextMenuItems([('Remove from Favorites', f"RunPlugin({ctx_url})")])
+            
+            url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                'action': 'list_items',
+                'page': 1,
+                'target': f['slug'],
+                'content_type': content_type
+            })
+            items_to_add.append((url, listitem, True))
+            
+        xbmcplugin.addDirectoryItems(int(sys.argv[1]), items_to_add)
+        xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type == 'video' else 'albums')
+        xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+
     def clear_cache(self):
         if DEBUG:
             self.log('clear_cache()')
@@ -416,38 +534,28 @@ class Main(object):
 
     # --- API COMMUNICATORS ---
 
-    def get_search_items(self, filter_map, target, page, content_type, sort_param=None):
+    def fetch_archive_metadata(self, query_type, target, filter_map, page, sort_param=None):
         cd = {}
         params = {
-            'service_backend': 'metadata',
-            'user_query': target,
             'hits_per_page': 100,
             'page': page,
-            'filter_map': filter_map,
             'aggregations': 'false',
             'client_url': self.base_url
         }
-        if sort_param:
-            params['sort'] = sort_param
+        
+        # Only attach the filter_map if it actually contains valid parameters to prevent HTTP 400 Bad Request errors
+        if filter_map and filter_map != '{}':
+            params['filter_map'] = filter_map
+        
+        if query_type == 'search':
+            params['service_backend'] = 'metadata'
+            params['user_query'] = target
+            if sort_param:
+                params['sort'] = sort_param
+        elif query_type == 'collection':
+            params['page_type'] = 'collection_details'
+            params['page_target'] = target
             
-        resp = client.request(self.search_url, headers=self.headers, params=params)
-        
-        if resp and isinstance(resp, dict):
-            cd = resp.get('response', {}).get('body', {}).get('hits', {})
-        return cd
-
-    def get_items(self, filter_map, target, page):
-        cd = {}
-        params = {
-            'page_type': 'collection_details',
-            'page_target': target,
-            'hits_per_page': 100,
-            'page': page,
-            'filter_map': filter_map,
-            'aggregations': 'false',
-            'client_url': self.base_url
-        }
-        
         resp = client.request(self.search_url, headers=self.headers, params=params)
         
         if resp and isinstance(resp, dict):
@@ -457,9 +565,10 @@ class Main(object):
     # --- CORE LISTERS ---
 
     def list_collections(self, page, content_type):
+        search_type = self.parameters('search_type')
         target = 'movies' if content_type == 'video' else 'audio'
         filter_map = '{"mediatype":{"collection":"inc"}}'
-        data = cache.get(self.get_items, cache_duration, filter_map, target, page)
+        data = cache.get(self.fetch_archive_metadata, cache_duration, 'collection', target, filter_map, page)
         
         if data:
             items = data.get('hits')
@@ -471,34 +580,7 @@ class Main(object):
             items_to_add = []
             
             if page == 1:
-                if content_type == 'video':
-                    shortcuts = [
-                        ("opensource_movies", "[COLOR gold]Community Video (Default)[/COLOR]", "General video and movie uploads"),
-                        ("dvdtray", "[COLOR gold]DVD Tray[/COLOR]", "Full DVD ISO backups"),
-                        ("vhsvault", "[COLOR gold]The VHS Vault[/COLOR]", "Raw VHS captures and preservation"),
-                        ("television_inbox", "[COLOR gold]Unsorted Television[/COLOR]", "Raw TV captures"),
-                        ("laserdiscs", "[COLOR gold]Laserdisc Archive[/COLOR]", "High quality laserdisc rips"),
-                        ("feature_films", "[COLOR gold]Feature Films[/COLOR]", "Classic full length movies"),
-                        ("anime", "[COLOR gold]The Anime Cascade[/COLOR]", "Anime episodes and series"),
-                        ("animationandcartoons", "[COLOR gold]Animation & Cartoons[/COLOR]", "Classic cartoons"),
-                        ("classic_tv", "[COLOR gold]Classic TV[/COLOR]", "Vintage television broadcasts"),
-                        ("SciFi_Horror", "[COLOR gold]Sci-Fi / Horror[/COLOR]", "Sci-Fi and Horror films"),
-                        ("comedy_films", "[COLOR gold]Comedy Films[/COLOR]", "Comedy films"),
-                        ("film_noir", "[COLOR gold]Film Noir[/COLOR]", "Classic film noir"),
-                        ("bmovies", "[COLOR gold]B-Movies[/COLOR]", "B-movie classics")
-                    ]
-                else:
-                    shortcuts = [
-                        ("opensource_audio", "[COLOR gold]Community Audio (Default)[/COLOR]", "Uncurated audio and music uploads"),
-                        ("album_recordings", "[COLOR gold]Long Playing Records (Vinyl)[/COLOR]", "Vinyl LP preservation project"),
-                        ("folksoundomy_music", "[COLOR gold]Folksoundomy Music[/COLOR]", "Full albums and soundboards"),
-                        ("audio_music", "[COLOR gold]Music, Arts & Culture[/COLOR]", "General music collection"),
-                        ("etree", "[COLOR gold]Live Music Archive (Concerts)[/COLOR]", "Lossless concert recordings"),
-                        ("78rpm", "[COLOR gold]78 RPMs & Cylinder Recordings[/COLOR]", "Vintage 78 RPM records"),
-                        ("netlabels", "[COLOR gold]Netlabels (Indie Albums)[/COLOR]", "Independent netlabel releases"),
-                        ("podcasts", "[COLOR gold]Podcasts & Radio[/COLOR]", "Podcasts and radio broadcasts")
-                    ]
-
+                shortcuts = self.cat_video if content_type == 'video' else self.cat_audio
                 for slug, title, plot in shortcuts:
                     labels = {
                         'title': title,
@@ -511,7 +593,8 @@ class Main(object):
                         'action': 'list_items',
                         'page': 1,
                         'target': slug,
-                        'content_type': content_type
+                        'content_type': content_type,
+                        'search_type': search_type
                     })
                     items_to_add.append((url, listitem, True))
                 
@@ -541,11 +624,15 @@ class Main(object):
                 listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
                 listitem.setProperty('IsPlayable', 'false')
                 
+                ctx_url = f"{sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}"
+                listitem.addContextMenuItems([('Save to Favorite Collections', f"RunPlugin({ctx_url})")])
+                
                 url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                     'action': 'list_items',
                     'page': 1,
                     'target': slug,
-                    'content_type': content_type
+                    'content_type': content_type,
+                    'search_type': search_type
                 })
                 items_to_add.append((url, listitem, True))
 
@@ -559,7 +646,8 @@ class Main(object):
                 url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                     'action': 'list_collections',
                     'page': page,
-                    'content_type': content_type
+                    'content_type': content_type,
+                    'search_type': search_type
                 })
                 items_to_add.append((url, listitem, True))
 
@@ -574,10 +662,86 @@ class Main(object):
             xbmcgui.Dialog().notification(_plugin, "Error retrieving collections.", _icon, 3000, False)
             xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
 
+    def search_collection_menu(self, content_type):
+        keyword = urllib.parse.unquote(self.parameters('keyword'))
+        page = int(self.parameters('page') or 1)
+
+        if keyword:
+            self.execute_collection_search(keyword, page, content_type)
+        else:
+            keyboard = xbmc.Keyboard()
+            keyboard.setHeading("Search Collections")
+            keyboard.doModal()
+            if keyboard.isConfirmed() and len(keyboard.getText()) > 2:
+                search_text = keyboard.getText()
+                self._save_history(search_text, content_type, 'collection')
+                self.execute_collection_search(search_text, 1, content_type)
+            else:
+                xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
+
+    def execute_collection_search(self, keyword, page, content_type):
+        filter_map = '{"mediatype":{"collection":"inc"}}'
+        data = cache.get(self.fetch_archive_metadata, cache_duration, 'search', keyword, filter_map, page)
+        
+        if data:
+            items = data.get('hits', [])
+            if not items:
+                xbmcgui.Dialog().notification(_plugin, "No collections found.", _icon, 3000, False)
+                xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
+                return
+                
+            items_to_add = []
+            for item in items:
+                fields = item.get('fields', {})
+                title = fields.get('title')
+                title = title[0] if isinstance(title, list) and title else (title or fields.get('identifier'))
+                slug = fields.get('identifier')
+                plot = fields.get('description')
+                plot = unescape(plot[0] if isinstance(plot, list) and plot else (plot or ''))
+                
+                listitem = self.make_listitem({'title': f"[COLOR gold]{title}[/COLOR]", 'plot' if content_type == 'video' else 'comment': plot}, content_type)
+                listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
+                listitem.setProperty('IsPlayable', 'false')
+                
+                ctx_url = f"{sys.argv[0]}?action=add_favorite_collection&target={slug}&title={urllib.parse.quote(str(title))}"
+                listitem.addContextMenuItems([('Save to Favorite Collections', f"RunPlugin({ctx_url})")])
+                
+                url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                    'action': 'list_items', 'page': 1, 'target': slug, 'content_type': content_type
+                })
+                items_to_add.append((url, listitem, True))
+                
+            if items_to_add:
+                xbmcplugin.addDirectoryItems(int(sys.argv[1]), items_to_add)
+                
+            total = data.get('total', 0)
+            if page * 100 < total:
+                lastpg = math.ceil(total / 100)
+                listitem = self.make_listitem({'title': f"[COLOR lime]{_language(30204)}...[/COLOR] ({page+1}/{lastpg})"}, content_type)
+                listitem.setArt({'icon': _icon, 'thumb': _icon, 'fanart': _fanart})
+                listitem.setProperty('IsPlayable', 'false')
+                
+                params = {
+                    'action': 'search_collection_menu',
+                    'keyword': keyword,
+                    'content_type': content_type,
+                    'page': page + 1
+                }
+                url = f"{sys.argv[0]}?" + urllib.parse.urlencode(params)
+                items_to_add.append((url, listitem, True))
+
+            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type == 'video' else 'albums')
+            xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
+        else:
+            xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
+
     def list_items(self, target, page, content_type):
-        mt_type = 'movies' if content_type == 'video' else 'audio'
-        filter_map = f'{{"mediatype":{{"{mt_type}":"inc","etree":"inc"}}}}'
-        data = cache.get(self.get_items, cache_duration, filter_map, target, page)
+        search_type = self.parameters('search_type')
+        
+        # Enforce an empty string rather than empty brackets to prevent HTTP 400 Bad Request rejection
+        filter_map = ''
+        
+        data = cache.get(self.fetch_archive_metadata, cache_duration, 'collection', target, filter_map, page)
         
         if data:
             items = data.get('hits')
@@ -614,7 +778,8 @@ class Main(object):
                 url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                     'action': 'expand_item',
                     'target': slug,
-                    'content_type': content_type
+                    'content_type': content_type,
+                    'search_type': search_type
                 })
                 items_to_add.append((url, listitem, True))
 
@@ -634,7 +799,8 @@ class Main(object):
                     'action': 'list_items',
                     'page': page,
                     'target': target,
-                    'content_type': content_type
+                    'content_type': content_type,
+                    'search_type': search_type
                 })
                 items_to_add.append((url, listitem, True))
 
@@ -654,48 +820,28 @@ class Main(object):
         prefilled_keyword = urllib.parse.unquote(self.parameters('keyword'))
         
         collections = []
+        favs = self._get_favorites()
+
         if search_type == 'movie':
-            collections = [
-                ("None (Search All Movies)", "none"),
-                ("Community Video (Default)", "opensource_movies"),
-                ("DVD Tray", "dvdtray"),
-                ("The VHS Vault", "vhsvault"),
-                ("Laserdisc Archive", "laserdiscs"),
-                ("Feature Films", "feature_films"),
-                ("Animation & Cartoons", "animationandcartoons"),
-                ("Sci-Fi / Horror", "SciFi_Horror"),
-                ("Comedy Films", "comedy_films"),
-                ("Film Noir", "film_noir"),
-                ("B-Movies", "bmovies")
-            ]
+            base_cols = [(title, slug) for slug, title in self.cat_movie]
+            for f in favs:
+                if not any(b[1] == f['slug'] for b in base_cols):
+                    base_cols.insert(0, (f"[COLOR gold]{f['title']}[/COLOR]", f['slug']))
+            collections = [("None (Search All of Internet Archive)", "none"), ("All Curated Collections", "all")] + base_cols
             heading = "Search Movies"
         elif search_type == 'tv':
-            collections = [
-                ("None (Search All TV Shows)", "none"),
-                ("Community Video (Default)", "opensource_movies"),
-                ("Unsorted Television", "television_inbox"),
-                ("DVD Tray", "dvdtray"),
-                ("The VHS Vault", "vhsvault"),
-                ("The Anime Cascade", "anime"),
-                ("Animation & Cartoons", "animationandcartoons"),
-                ("Classic TV", "classic_tv"),
-                ("Television Archive", "tvarchive"),
-                ("Television", "television"),
-                ("Laserdisc Archive", "laserdiscs")
-            ]
+            base_cols = [(title, slug) for slug, title in self.cat_tv]
+            for f in favs:
+                if not any(b[1] == f['slug'] for b in base_cols):
+                    base_cols.insert(0, (f"[COLOR gold]{f['title']}[/COLOR]", f['slug']))
+            collections = [("None (Search All of Internet Archive)", "none"), ("All Curated Collections", "all")] + base_cols
             heading = "Search TV Shows"
         elif search_type == 'audio':
-            collections = [
-                ("None (Search All Audio)", "none"),
-                ("Community Audio (Default)", "opensource_audio"),
-                ("Long Playing Records (Vinyl)", "album_recordings"),
-                ("Folksoundomy Music", "folksoundomy_music"),
-                ("Music, Arts & Culture", "audio_music"),
-                ("Live Music Archive (Concerts)", "etree"),
-                ("78 RPMs & Cylinder Recordings", "78rpm"),
-                ("Netlabels (Indie Albums)", "netlabels"),
-                ("Podcasts & Radio", "podcasts")
-            ]
+            base_cols = [(title, slug) for slug, title, plot in self.cat_audio]
+            for f in favs:
+                if not any(b[1] == f['slug'] for b in base_cols):
+                    base_cols.insert(0, (f"[COLOR gold]{f['title']}[/COLOR]", f['slug']))
+            collections = [("None (Search All of Internet Archive)", "none"), ("All Curated Collections", "all")] + base_cols
             heading = "Search Audio & Music"
         else:
             heading = f"Search {content_type.capitalize()}"
@@ -751,6 +897,8 @@ class Main(object):
                 selected_slugs = [collections[i][1] for i in selected_indices]
                 if "none" in selected_slugs:
                     collection_str = "none"
+                elif "all" in selected_slugs:
+                    collection_str = "all"
                 else:
                     collection_str = ",".join(selected_slugs)
         
@@ -773,24 +921,38 @@ class Main(object):
         search_type = self.parameters('search_type') or 'video'
         collection_str = self.parameters('collections')
         
-        mt_type = 'movies' if content_type == 'video' else 'audio'
-        
-        f_map = {
-            "mediatype": {mt_type: "inc", "etree": "inc"}
-        }
-        
+        f_map = {}
         query_string = search_text
         sort_param = None
         
         # 1. Routing Trap Fix & Global Assignment
         if not collection_str:
-            if search_type == 'video':
-                collection_str = "none"
+            if search_type == 'movie':
+                collection_str = _settings('default_movie_collection') or 'opensource_movies'
+            elif search_type == 'tv':
+                collection_str = _settings('default_tv_collection') or 'opensource_movies'
             else:
-                collection_str = "opensource_movies" if content_type == 'video' else "opensource_audio"
+                collection_str = _settings('default_audio_collection') or 'opensource_audio'
                 
-        # 2. Collection Injection (Bypassed if 'none')
-        if collection_str != "none":
+        # 2. Collection Injection (Bypassed if not targeted)
+        if collection_str == "none":
+            pass # Search everything globally, bypassing collection filters entirely
+        elif collection_str == "all":
+            cols = []
+            if search_type == 'movie':
+                cols = [c[0] for c in self.cat_movie]
+            elif search_type == 'tv':
+                cols = [c[0] for c in self.cat_tv]
+            elif search_type == 'audio':
+                cols = [c[0] for c in self.cat_audio]
+            
+            favs = self._get_favorites()
+            cols.extend([f['slug'] for f in favs])
+            cols = list(set(cols))
+            
+            if cols:
+                f_map["collection"] = {c: "inc" for c in cols}
+        elif collection_str != "none":
             cols = [c.strip() for c in collection_str.split(',') if c.strip()]
             if cols:
                 f_map["collection"] = {c: "inc" for c in cols}
@@ -803,9 +965,10 @@ class Main(object):
             exclusions = '(promo OR clip OR commercial OR bumper OR advert OR "tv spot" OR teaser OR trailer OR intro OR menu OR extras OR bonus OR preview OR previews OR fandub OR "fan dub" OR "fan edit" OR "fan project" OR "screen recording")'
             query_string = f'({search_text}) AND NOT title:{exclusions} AND NOT subject:{exclusions}'
             
-        filter_map_json = json.dumps(f_map, separators=(',', ':'))
+        # Ensure we pass an empty string instead of an empty dictionary string if the filter map is blank
+        filter_map_json = json.dumps(f_map, separators=(',', ':')) if f_map else ''
             
-        data = cache.get(self.get_search_items, cache_duration, filter_map_json, query_string, page, content_type, sort_param)
+        data = cache.get(self.fetch_archive_metadata, cache_duration, 'search', query_string, filter_map_json, page, sort_param)
         
         if data:
             items = data.get('hits')
@@ -853,7 +1016,8 @@ class Main(object):
                 url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                     'action': 'expand_item',
                     'target': slug,
-                    'content_type': content_type
+                    'content_type': content_type,
+                    'search_type': search_type
                 })
                 items_to_add.append((url, listitem, True))
 
@@ -914,6 +1078,7 @@ class Main(object):
         return clean_filename.rsplit('.', 1)[0]
 
     def expand_item(self, item_id, content_type):
+        search_type = self.parameters('search_type')
         api_url = f"{self.base_url}metadata/{item_id}"
         jd = cache.get(client.request, cache_duration, api_url)
 
@@ -968,7 +1133,8 @@ class Main(object):
                 'action': 'play_video',
                 'target': item_id,
                 'ep_tag': tag,
-                'content_type': content_type
+                'content_type': content_type,
+                'search_type': search_type
             })
             items_to_add.append((url, listitem, False))
             
@@ -980,15 +1146,29 @@ class Main(object):
 
     def play_video(self, item_id, content_type):
         ep_tag = self.parameters('ep_tag')
+        search_type = self.parameters('search_type')
+        
+        # Determine if Kodi is auto-advancing in the background or if we triggered our internal queue
+        is_background = self.parameters('queue') == '0'
+        try:
+            if xbmc.Player().isPlaying():
+                is_background = True
+        except Exception:
+            pass
         
         # When queue=0 it means Kodi's playlist is automatically playing this next background item.
-        auto_play = _settings('auto_play_queue') != 'false'
-        do_queue = self.parameters('queue') != '0' and auto_play
+        auto_play_setting = _settings('auto_play_queue') != 'false'
+        
+        # Do not manually queue if this originated from a movie search or if we are already in the background
+        do_queue = not is_background and auto_play_setting and search_type != 'movie'
 
-        # Extract playback memory (if queued by background playlist)
-        pref_ext = self.parameters('pref_ext')
-        pref_height = self.parameters('pref_height')
-        pref_source = self.parameters('pref_source')
+        # Access Kodi's Home Window to store/retrieve persistent session properties for native auto-advancing
+        window = xbmcgui.Window(10000)
+
+        # Extract playback memory (if queued by background playlist OR native Kodi auto-advance)
+        pref_ext = self.parameters('pref_ext') or window.getProperty('ia_pref_ext')
+        pref_height = self.parameters('pref_height') or window.getProperty('ia_pref_height')
+        pref_source = self.parameters('pref_source') or window.getProperty('ia_pref_source')
 
         api_url = f"{self.base_url}metadata/{item_id}"
         jd = cache.get(client.request, cache_duration, api_url)
@@ -1043,7 +1223,7 @@ class Main(object):
                 target_files.sort(key=lambda i: self._safe_int(i.get('size')), reverse=True)
 
             # If an automated playlist queue is playing, force exact match to previous video settings WITHOUT throwing Dialog Menu
-            if not do_queue and pref_ext:
+            if is_background and pref_ext:
                 best_match = None
                 matches = [f for f in target_files if f.get('name', '').lower().endswith(pref_ext)]
                 
@@ -1098,30 +1278,74 @@ class Main(object):
                 if ret == -1:
                     xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem=xbmcgui.ListItem())
                     return
-                selected_file = target_files[ret]
+                
+                # Pull the user's manual selection to the front of the list to prioritize it in the fallback loop
+                selected_file = target_files.pop(ret)
+                target_files.insert(0, selected_file)
+                
+                # Save the explicit manual selection to Window memory for native Kodi auto-advancing
+                window.setProperty('ia_pref_ext', selected_file.get('name', '').split('.')[-1].lower())
+                window.setProperty('ia_pref_height', str(selected_file.get('height', '')))
+                window.setProperty('ia_pref_source', str(selected_file.get('source', '')).lower())
         else:
             selected_file = target_files[0]
+            # Save format memory even if it was the only option, so the next episode matches it
+            window.setProperty('ia_pref_ext', selected_file.get('name', '').split('.')[-1].lower())
+            window.setProperty('ia_pref_height', str(selected_file.get('height', '')))
+            window.setProperty('ia_pref_source', str(selected_file.get('source', '')).lower())
 
-        surl = f"https://{random.choice(workable_servers)}{item_dir}/{urllib.parse.quote(selected_file.get('name', ''), safe='/')}"
+        # --- DERIVATIVE FALLBACK LOOP & SERVER CHECK ---
+        successful_file = None
+        successful_surl = ""
 
-        # Apply cURL pipe injection for persistent connections and extended timeout
-        surl = f"{surl}|Connection=keep-alive&Timeout=60"
+        # Iterate through the sorted target files (prioritizing the chosen/best match format)
+        for candidate_file in target_files:
+            node = random.choice(workable_servers)
+            test_surl = f"https://{node}{item_dir}/{urllib.parse.quote(candidate_file.get('name', ''), safe='/')}"
+            
+            try:
+                # 3-second strict timeout to fast-fail dead Archive.org nodes
+                req = urllib.request.Request(test_surl, method='HEAD')
+                urllib.request.urlopen(req, timeout=3.0)
+                
+                # If we get here, the node is alive and the file exists
+                successful_file = candidate_file
+                successful_surl = test_surl
+                break 
+            except Exception as e:
+                if DEBUG:
+                    self.log(f"Server dead/unresponsive for derivative format ({test_surl}): {str(e)}")
+                continue # Catch exception and seamlessly try the next format derivative in the list
+
+        if not successful_file:
+            xbmcgui.Dialog().notification(_plugin, "All stream derivatives unresponsive. Skipping.", _icon, 3000, False)
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem=xbmcgui.ListItem())
+            return
+
+        # Re-assign the confirmed working file as our selected file
+        selected_file = successful_file
+        
+        # Explicitly disable queue generation if the final working file is a DVD ISO
+        if selected_file.get('name', '').lower().endswith('.iso'):
+            do_queue = False
+
+        # Apply cURL pipe injection for persistent connections, extended timeout, and transparent User-Agent spoofing to bypass throttling
+        final_surl = f"{successful_surl}|Connection=keep-alive&Timeout=60&User-Agent=Kodi-InternetArchiveTheater-Addon (Contact: https://github.com/PythonTrousers)"
 
         li = self.make_listitem({'title': resume_title}, content_type)
         li.setArt({'fanart': _fanart})
-        li.setPath(surl)
+        li.setPath(final_surl)
         
-        # Optimization for DVD ISO streaming
+        # Explicitly suppress Kodi's network probe and manually set MIME type ONLY for DVD ISOs
+        # This allows native HTTP header probing for standard media to bypass FFmpeg deep-probe lag
         if selected_file.get('name', '').lower().endswith('.iso'):
+            if hasattr(li, 'setContentLookup'):
+                li.setContentLookup(False)
+            li.setProperty('VideoPlayer.ContentLookup', 'false')
             if hasattr(li, 'setMimeType'):
                 li.setMimeType('application/x-iso9660-image')
             else:
                 li.setProperty('mimetype', 'application/x-iso9660-image')
-                
-            # Disable Kodi's internal network probe to preserve cache
-            if hasattr(li, 'setContentLookup'):
-                li.setContentLookup(False)
-            li.setProperty('VideoPlayer.ContentLookup', 'false')
         
         # Intercept and process local resume data before handoff to prevent double-initialization
         res_data = self._get_resume()
@@ -1155,6 +1379,7 @@ class Main(object):
                         'target': item_id,
                         'ep_tag': r_tag,
                         'content_type': content_type,
+                        'search_type': search_type,
                         'queue': '0', 
                         'pref_ext': sel_ext,       # Queue inherits your format choice
                         'pref_height': sel_height, # Queue inherits your res choice

@@ -13,8 +13,8 @@
 
 		<!-- Auto Play & Select Toggles (Optimized for OOBE) -->
 		<setting id="auto_play_queue" type="bool" label="Auto-Play Next Episode/Track" default="true"/>
-		<setting id="auto_select_stream" type="bool" label="Auto-Select Best Stream" default="true"/>
-		<setting id="auto_select_collection" type="bool" label="Auto-Select Search Collection" default="true"/>
+		<setting id="auto_select_stream" type="bool" label="Auto-Select Best Stream" default="false"/>
+		<setting id="auto_select_collection" type="bool" label="Auto-Select Search Collection" default="false"/>
 
 		<!-- Manual Overrides -->
 		<setting id="manual_collection_override" type="bool" label="Enable Manual Collection Override" default="false"/>
