@@ -18,7 +18,7 @@
 
         html {
             scroll-behavior: smooth;
-            scroll-padding-top: 2rem; /* Adds padding so anchor jumps don't hug the very top of the screen */
+            scroll-padding-top: 2rem;
         }
 
         body {
@@ -83,76 +83,82 @@
             font-style: italic;
         }
 
-        .container {
-            max-width: 850px;
+        /* * CSS Grid Layout for Sidebar + Main Content 
+         */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 4rem;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 3rem 2rem;
+            align-items: start; /* Allows sticky positioning to work inside grid */
         }
 
-        /* Table of Contents Styling */
-        .toc-box {
-            background-color: var(--bg-panel);
-            border: 2px solid var(--theater-gold);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        /* * Sticky Sidebar Styling 
+         */
+        .toc-sidebar {
+            position: sticky;
+            top: 2rem; /* Locks 2rem from top of screen */
+            padding-right: 2rem;
+            border-right: 1px solid #333;
         }
 
-        .toc-box h2 {
+        .toc-sidebar h2 {
             margin-top: 0;
+            padding-top: 0;
+            font-size: 1.2rem;
             border-bottom: 1px solid var(--theater-gold);
             padding-bottom: 0.5rem;
             color: var(--theater-cream);
-            border-left: none;
-            padding-left: 0;
         }
 
         .toc-list {
             list-style: none;
             padding: 0;
-            margin: 0;
+            margin: 1.5rem 0 0 0;
         }
 
         .toc-list > li {
-            margin-bottom: 0.8rem;
-            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            font-size: 1.05rem;
         }
 
         .toc-list a {
-            color: var(--theater-gold);
+            color: var(--text-muted);
             text-decoration: none;
-            font-weight: bold;
-            transition: color 0.2s;
+            display: inline-block;
+            transition: all 0.2s ease;
         }
 
         .toc-list a:hover {
             color: var(--theater-cream);
-            text-decoration: underline;
+            transform: translateX(4px); /* Slight slide to the right on hover */
         }
 
         .toc-sublist {
-            list-style: circle;
-            padding-left: 1.8rem;
-            margin-top: 0.5rem;
-            color: var(--text-muted);
+            list-style: none;
+            padding-left: 1.2rem;
+            margin-top: 0.8rem;
+            border-left: 1px solid #333;
         }
 
         .toc-sublist li {
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.6rem;
             font-size: 0.95rem;
         }
 
         .toc-sublist a {
-            color: var(--text-muted);
-            font-weight: normal;
+            color: #777;
         }
 
         .toc-sublist a:hover {
-            color: var(--theater-cream);
+            color: var(--theater-gold);
         }
 
-        h2 {
+        /* * Main Content Typography 
+         */
+        .main-content h2 {
             color: var(--theater-gold);
             border-bottom: 1px solid #333;
             padding-bottom: 0.5rem;
@@ -160,7 +166,13 @@
             padding-top: 1rem;
         }
 
-        h3 {
+        .main-content h2:first-of-type {
+            margin-top: 0;
+            padding-top: 0;
+            border-bottom: none;
+        }
+
+        .main-content h3 {
             color: var(--theater-cream);
             margin-top: 2.5rem;
             border-left: 3px solid var(--theater-red);
@@ -187,17 +199,9 @@
             border-radius: 0 8px 8px 0;
         }
 
-        ul, ol {
-            padding-left: 1.5rem;
-        }
-
-        li {
-            margin-bottom: 0.8rem;
-        }
-
-        strong {
-            color: var(--theater-cream);
-        }
+        ul, ol { padding-left: 1.5rem; }
+        li { margin-bottom: 0.8rem; }
+        strong { color: var(--theater-cream); }
 
         code {
             background-color: #000;
@@ -240,6 +244,23 @@
             background-color: var(--theater-gold);
             color: var(--bg-dark);
         }
+
+        /* * Mobile Responsive Fallback 
+         */
+        @media (max-width: 900px) {
+            .layout-grid {
+                grid-template-columns: 1fr; /* Stacks the columns */
+                gap: 2rem;
+            }
+
+            .toc-sidebar {
+                position: static; /* Removes sticky behavior */
+                border-right: none;
+                border-bottom: 1px solid #333;
+                padding-right: 0;
+                padding-bottom: 2rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -252,132 +273,135 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="layout-grid">
 
-        <div class="toc-box">
-            <h2>🗂️ Directory of Contents</h2>
+        <aside class="toc-sidebar">
+            <h2>Table of Contents</h2>
             <ul class="toc-list">
-                <li><a href="#about">ℹ️ About & Transparency</a></li>
-                <li><a href="#features">✨ Features & Additions</a></li>
-                <li><a href="#optimizations">⚙️ Under-the-Hood Optimizations</a></li>
-                <li><a href="#install">📦 How to Install</a></li>
+                <li><a href="#about">About & Transparency</a></li>
+                <li><a href="#features">Features & Additions</a></li>
+                <li><a href="#optimizations">Under-the-Hood Optimizations</a></li>
+                <li><a href="#install">How to Install</a></li>
                 <li>
-                    <a href="#tutorial">📖 User Guide & Tutorial</a>
+                    <a href="#tutorial">User Guide & Tutorial</a>
                     <ul class="toc-sublist">
                         <li><a href="#tutorial-1">1. Main Menu Breakdown</a></li>
-                        <li><a href="#tutorial-2">2. Finding & Favoriting Collections</a></li>
+                        <li><a href="#tutorial-2">2. Favoriting Collections</a></li>
                         <li><a href="#tutorial-3">3. Search Optimization</a></li>
                         <li><a href="#tutorial-4">4. Configuring Settings</a></li>
                     </ul>
                 </li>
-                <li><a href="#troubleshooting">🔧 Troubleshooting (HTTP2 Stuttering)</a></li>
+                <li><a href="#troubleshooting">Troubleshooting (HTTP2)</a></li>
             </ul>
-        </div>
+        </aside>
 
-        <h2 id="about" style="display:none;"></h2> <div class="intro-box">
-            <strong>Internet Archive Theater (IAT)</strong> is a dedicated video and audio plugin designed to interface with the Internet Archive. It provides a highly optimized, structured viewing experience for public domain and archived media directly within Kodi.
-        </div>
+        <main class="main-content">
+            
+            <h2 id="about" style="display:none;"></h2>
+            <div class="intro-box">
+                <strong>Internet Archive Theater (IAT)</strong> is a dedicated video and audio plugin designed to interface with the Internet Archive. It provides a highly optimized, structured viewing experience for public domain and archived media directly within Kodi.
+            </div>
 
-        <blockquote class="fork-note">
-            Note: This addon is a massive, heavily modified fork and spiritual successor to the original <code>plugin.video.archive.org</code> by gujal. Because the original addon was abandoned and broken by API changes, IAT was built from the ground up as a standalone app with entirely rewritten logic, custom UI flows, and expanded playback capabilities.
-        </blockquote>
+            <blockquote class="fork-note">
+                Note: This addon is a massive, heavily modified fork and spiritual successor to the original <code>plugin.video.archive.org</code> by gujal. Because the original addon was abandoned and broken by API changes, IAT was built from the ground up as a standalone app with entirely rewritten logic, custom UI flows, and expanded playback capabilities.
+            </blockquote>
 
-        <h2 id="features">✨ Features & Additions</h2>
-        <ul>
-            <li><strong>Continue Watching (Resume Data):</strong> Added custom local JSON tracking to remember where you left off in a video. Seamlessly integrates with Kodi's native UI to prompt you to resume or restart upon selection.</li>
-            <li><strong>Search History Tracking:</strong> Your recent searches are now locally saved, making it easy to jump back into a previous query without retyping.</li>
-            <li><strong>Granular Search Categories:</strong> Replaced the old "Search All" with specific searches for Movies, TV Shows, and Audio, which intelligently target specific Internet Archive collections.</li>
-            <li><strong>Curated Collection Shortcuts:</strong> Added built-in shortcuts to popular media hubs (e.g., The VHS Vault, DVD Tray, Laserdisc Archive, Classic TV, etc.).</li>
-            <li><strong>Favorite Collections Subfolders:</strong> Save custom Archive collections to a local favorites list. Your saved vaults are now automatically organized into distinct Movie, TV, and Audio subfolders to prevent clutter.</li>
-            <li><strong>Collection Search:</strong> A dedicated search route to discover and browse user-curated collections globally across the Internet Archive.</li>
-            <li><strong>Binge-Watching / Auto-Play Queue:</strong> Added a threaded background tracker that automatically queues up the next episode or track in a playlist sequence.</li>
-            <li><strong>Smart Stream Selection:</strong> Replaced raw file dumps with a clean selection menu. The addon now extracts and displays resolution, file size, and source format.</li>
-            <li><strong>Expanded Settings UI:</strong> A massive settings overhaul allows you to set preferred video/audio formats, cap maximum resolutions, enable/disable auto-play, and easily restore your collections back to their default factory settings.</li>
-            <li><strong>Custom Visuals:</strong> Added a native Kodi splash screen on startup to improve the aesthetic experience.</li>
-        </ul>
+            <h2 id="features">Features & Additions</h2>
+            <ul>
+                <li><strong>Continue Watching (Resume Data):</strong> Added custom local JSON tracking to remember where you left off in a video. Seamlessly integrates with Kodi's native UI to prompt you to resume or restart upon selection.</li>
+                <li><strong>Search History Tracking:</strong> Your recent searches are now locally saved, making it easy to jump back into a previous query without retyping.</li>
+                <li><strong>Granular Search Categories:</strong> Replaced the old "Search All" with specific searches for Movies, TV Shows, and Audio, which intelligently target specific Internet Archive collections.</li>
+                <li><strong>Curated Collection Shortcuts:</strong> Added built-in shortcuts to popular media hubs (e.g., The VHS Vault, DVD Tray, Laserdisc Archive, Classic TV, etc.).</li>
+                <li><strong>Favorite Collections Subfolders:</strong> Save custom Archive collections to a local favorites list. Your saved vaults are now automatically organized into distinct Movie, TV, and Audio subfolders to prevent clutter.</li>
+                <li><strong>Collection Search:</strong> A dedicated search route to discover and browse user-curated collections globally across the Internet Archive.</li>
+                <li><strong>Binge-Watching / Auto-Play Queue:</strong> Added a threaded background tracker that automatically queues up the next episode or track in a playlist sequence.</li>
+                <li><strong>Smart Stream Selection:</strong> Replaced raw file dumps with a clean selection menu. The addon now extracts and displays resolution, file size, and source format.</li>
+                <li><strong>Expanded Settings UI:</strong> A massive settings overhaul allows you to set preferred video/audio formats, cap maximum resolutions, enable/disable auto-play, and easily restore your collections back to their default factory settings.</li>
+                <li><strong>Custom Visuals:</strong> Added a native Kodi splash screen on startup to improve the aesthetic experience.</li>
+            </ul>
 
-        <h2 id="optimizations">⚙️ Under-the-Hood Optimizations</h2>
-        <ul>
-            <li><strong>Strict Media Filtering:</strong> Advanced regex and extension filtering automatically removes unplayable files, text documents, and junk data from your search results.</li>
-            <li><strong>Smart Duration Parsing:</strong> The new logic parses runtimes to automatically filter out promos, short clips, and trailers (e.g., hiding videos under 45 minutes when searching for "Movies").</li>
-            <li><strong>cURL Pipe Injection:</strong> Streaming URLs are now injected with <code>|Connection=keep-alive&Timeout=60</code> to enforce persistent connections and prevent arbitrary dropouts. They also utilize transparent User-Agent spoofing to bypass backend throttling.</li>
-            <li><strong>Intelligent Server Routing:</strong> Integrated a 3-second network fallback loop to intelligently bypass dead or unresponsive Archive.org data servers before stream failures occur.</li>
-            <li><strong>Continuous Memory Inheritance:</strong> Playlist queues automatically inherit your specific format, resolution, and source preferences to ensure seamless auto-advancing across episodes.</li>
-            <li><strong>Native Resume Support:</strong> Utilizes modern <code>InfoTagVideo</code> metadata tags to bypass forced starts and organically trigger Kodi's built-in "Resume" dialog prompts in v20+.</li>
-            <li><strong>DVD ISO Playback Optimization:</strong> Explicitly sets the MIME type to <code>application/x-iso9660-image</code> and disables Kodi's internal network probe on ISO files, completely eliminating pre-buffer freezing. Automated playlist queueing is explicitly disabled for ISO targets.</li>
-            <li><strong>Episode Identification Regex:</strong> The addon uses pre-compiled regex parameters to parse standard TV episode formats (e.g., S01E02) out of chaotic raw filenames.</li>
-            <li><strong>Performance Enhancements:</strong> Migrated to modern f-strings, implemented safe Kodi version parsing via the official API, and heavily optimized the local cache retrieval logic.</li>
-        </ul>
+            <h2 id="optimizations">Under-the-Hood Optimizations</h2>
+            <ul>
+                <li><strong>Strict Media Filtering:</strong> Advanced regex and extension filtering automatically removes unplayable files, text documents, and junk data from your search results.</li>
+                <li><strong>Smart Duration Parsing:</strong> The new logic parses runtimes to automatically filter out promos, short clips, and trailers (e.g., hiding videos under 45 minutes when searching for "Movies").</li>
+                <li><strong>cURL Pipe Injection:</strong> Streaming URLs are now injected with <code>|Connection=keep-alive&Timeout=60</code> to enforce persistent connections and prevent arbitrary dropouts. They also utilize transparent User-Agent spoofing to bypass backend throttling.</li>
+                <li><strong>Intelligent Server Routing:</strong> Integrated a 3-second network fallback loop to intelligently bypass dead or unresponsive Archive.org data servers before stream failures occur.</li>
+                <li><strong>Continuous Memory Inheritance:</strong> Playlist queues automatically inherit your specific format, resolution, and source preferences to ensure seamless auto-advancing across episodes.</li>
+                <li><strong>Native Resume Support:</strong> Utilizes modern <code>InfoTagVideo</code> metadata tags to bypass forced starts and organically trigger Kodi's built-in "Resume" dialog prompts in v20+.</li>
+                <li><strong>DVD ISO Playback Optimization:</strong> Explicitly sets the MIME type to <code>application/x-iso9660-image</code> and disables Kodi's internal network probe on ISO files, completely eliminating pre-buffer freezing. Automated playlist queueing is explicitly disabled for ISO targets.</li>
+                <li><strong>Episode Identification Regex:</strong> The addon uses pre-compiled regex parameters to parse standard TV episode formats (e.g., S01E02) out of chaotic raw filenames.</li>
+                <li><strong>Performance Enhancements:</strong> Migrated to modern f-strings, implemented safe Kodi version parsing via the official API, and heavily optimized the local cache retrieval logic.</li>
+            </ul>
 
-        <h2 id="install">📦 How to Install</h2>
-        <p>To install this repository and access the add-ons on your Kodi device (Raspberry Pi, Android, PC, etc.), follow these steps:</p>
-        <ol>
-            <li>Open Kodi and navigate to the <strong>Settings</strong> gear icon.</li>
-            <li>Open <strong>File Manager</strong> and select <strong>Add source</strong>.</li>
-            <li>Click on <code>&lt;None&gt;</code> and enter the following URL exactly: <br><code>https://pythontrousers.github.io/kodi/</code></li>
-            <li>Name the media source <strong>PythonTrousers</strong> and click <strong>OK</strong>.</li>
-            <li>Return to the Kodi home screen, click <strong>Add-ons</strong>, and click the open box icon at the top left.</li>
-            <li>Select <strong>Install from zip file</strong> <em>(If prompted, enable "Unknown sources" in your settings)</em>.</li>
-            <li>Select <strong>PythonTrousers</strong> and then select the <code>repository.pythontrousers-0.x.x.zip</code> file.</li>
-            <li>Once the repository installed notification appears, select <strong>Install from repository</strong>.</li>
-            <li>Select <strong>PythonTrousers Repository</strong> -> <strong>Video add-ons</strong> -> <strong>Internet Archive Theater</strong> and hit <strong>Install</strong>.</li>
-        </ol>
+            <h2 id="install">How to Install</h2>
+            <p>To install this repository and access the add-ons on your Kodi device (Raspberry Pi, Android, PC, etc.), follow these steps:</p>
+            <ol>
+                <li>Open Kodi and navigate to the <strong>Settings</strong> gear icon.</li>
+                <li>Open <strong>File Manager</strong> and select <strong>Add source</strong>.</li>
+                <li>Click on <code>&lt;None&gt;</code> and enter the following URL exactly: <br><code>https://pythontrousers.github.io/kodi/</code></li>
+                <li>Name the media source <strong>PythonTrousers</strong> and click <strong>OK</strong>.</li>
+                <li>Return to the Kodi home screen, click <strong>Add-ons</strong>, and click the open box icon at the top left.</li>
+                <li>Select <strong>Install from zip file</strong> <em>(If prompted, enable "Unknown sources" in your settings)</em>.</li>
+                <li>Select <strong>PythonTrousers</strong> and then select the <code>repository.pythontrousers-0.x.x.zip</code> file.</li>
+                <li>Once the repository installed notification appears, select <strong>Install from repository</strong>.</li>
+                <li>Select <strong>PythonTrousers Repository</strong> -> <strong>Video add-ons</strong> -> <strong>Internet Archive Theater</strong> and hit <strong>Install</strong>.</li>
+            </ol>
 
-        <h2 id="tutorial">📖 User Guide & Tutorial</h2>
-        <p>Internet Archive Theater (IAT) offers a robust set of features to navigate the massive library of the Internet Archive. Here is a breakdown of how to use the addon effectively:</p>
+            <h2 id="tutorial">User Guide & Tutorial</h2>
+            <p>Internet Archive Theater (IAT) offers a robust set of features to navigate the massive library of the Internet Archive. Here is a breakdown of how to use the addon effectively:</p>
 
-        <h3 id="tutorial-1">1. Main Menu Breakdown</h3>
-        <p>The main menu is your starting point and is divided into specific functional routes:</p>
-        <ul>
-            <li><strong>Continue Watching:</strong> Access your locally saved resume points to instantly pick up videos exactly where you left off.</li>
-            <li><strong>Search Movies, TV Shows, Audio:</strong> These are dedicated search tools curated to find your specified media.</li>
-            <li><strong>Search Collections:</strong> A dedicated search tool used strictly to find user-created metadata vaults (Collections) across the entire Archive.</li>
-            <li><strong>Favorite Collections:</strong> A quick-access hub containing any collections you have manually saved, sorted cleanly into specific media categories.</li>
-        </ul>
+            <h3 id="tutorial-1">1. Main Menu Breakdown</h3>
+            <p>The main menu is your starting point and is divided into specific functional routes:</p>
+            <ul>
+                <li><strong>Continue Watching:</strong> Access your locally saved resume points to instantly pick up videos exactly where you left off.</li>
+                <li><strong>Search Movies, TV Shows, Audio:</strong> These are dedicated search tools curated to find your specified media.</li>
+                <li><strong>Search Collections:</strong> A dedicated search tool used strictly to find user-created metadata vaults (Collections) across the entire Archive.</li>
+                <li><strong>Favorite Collections:</strong> A quick-access hub containing any collections you have manually saved, sorted cleanly into specific media categories.</li>
+            </ul>
 
-        <h3 id="tutorial-2">2. Finding & Favoriting Collections</h3>
-        <p>The Internet Archive is built on "Collections" (folders containing specific types of media).</p>
-        <ul>
-            <li><strong>Searching for Collections:</strong> Select the <strong>Search Collections</strong> option from the main menu to look for specific themes or curators (e.g., searching "Laserdisc" will return vaults specifically dedicated to laserdisc rips). You can also browse the popular collections section.</li>
-            <li><strong>Favoriting Collections:</strong> Once you find a collection you want to keep track of, highlight it, open the Kodi Context Menu (usually 'C' on a keyboard, or long-press the 'OK' button on a remote), and choose to save it to your Movie, TV, or Audio Collections. This sends the collection to its respective subfolder in your favorites for permanent quick access.</li>
-        </ul>
+            <h3 id="tutorial-2">2. Finding & Favoriting Collections</h3>
+            <p>The Internet Archive is built on "Collections" (folders containing specific types of media).</p>
+            <ul>
+                <li><strong>Searching for Collections:</strong> Select the <strong>Search Collections</strong> option from the main menu to look for specific themes or curators (e.g., searching "Laserdisc" will return vaults specifically dedicated to laserdisc rips). You can also browse the popular collections section.</li>
+                <li><strong>Favoriting Collections:</strong> Once you find a collection you want to keep track of, highlight it, open the Kodi Context Menu (usually 'C' on a keyboard, or long-press the 'OK' button on a remote), and choose to save it to your Movie, TV, or Audio Collections. This sends the collection to its respective subfolder in your favorites for permanent quick access.</li>
+            </ul>
 
-        <h3 id="tutorial-3">3. Search Optimization</h3>
-        <p>To get the absolute best results when searching for specific media files:</p>
-        <ul>
-            <li><strong>Contextual Searching:</strong> Always initiate your search from within the relevant hub. Searching for a film inside the <strong>Movies</strong> hub will automatically filter out text files, images, and audio tracks, and will apply duration logic to hide short promo clips.</li>
-            <li><strong>Targeting specific Vaults:</strong> When you initiate a keyword search, the addon will ask you which collection you want to search inside. Any collection you have saved to your "Favorite Collections" for that corresponding category will automatically populate in this selection menu. This allows you to specifically search for a movie <em>only</em> within your custom high-quality vaults.</li>
-            <li><strong>The Global Bypass:</strong> If you cannot find what you are looking for in the curated lists, select the <strong>None (Global Bypass)</strong> option when asked where to search. This completely strips all specified collections and searches the entire Internet Archive database for your keyword.</li>
-        </ul>
+            <h3 id="tutorial-3">3. Search Optimization</h3>
+            <p>To get the absolute best results when searching for specific media files:</p>
+            <ul>
+                <li><strong>Contextual Searching:</strong> Always initiate your search from within the relevant hub. Searching for a film inside the <strong>Movies</strong> hub will automatically filter out text files, images, and audio tracks, and will apply duration logic to hide short promo clips.</li>
+                <li><strong>Targeting specific Vaults:</strong> When you initiate a keyword search, the addon will ask you which collection you want to search inside. Any collection you have saved to your "Favorite Collections" for that corresponding category will automatically populate in this selection menu. This allows you to specifically search for a movie <em>only</em> within your custom high-quality vaults.</li>
+                <li><strong>The Global Bypass:</strong> If you cannot find what you are looking for in the curated lists, select the <strong>None (Global Bypass)</strong> option when asked where to search. This completely strips all specified collections and searches the entire Internet Archive database for your keyword.</li>
+            </ul>
 
-        <h3 id="tutorial-4">4. Configuring Settings</h3>
-        <p>You can fine-tune the addon's performance to match your hardware and network speed by opening the Add-on Settings:</p>
-        <ul>
-            <li><strong>Playback Preferences:</strong> Hardcode your preferred video and audio formats (e.g., MP4 vs. MKV). You can also set a maximum resolution cap (like 720p or 1080p), which is highly recommended for slower internet connections.</li>
-            <li><strong>Default Collections:</strong> Choose to default your searches to either the Global Bypass (None) or All Curated Collections for Movies, TV Shows, and Audio.</li>
-            <li><strong>Auto-Play Next Episode/Track:</strong> Toggle the background playlist queueing system on or off. When enabled, the addon will automatically track your quality preferences based on the first file selected and continuously play the next episode or track in a list.</li>
-            <li><strong>Auto-Select Best Stream:</strong> Toggle to automatically select your preferred file format. Playback will fallback to the next available format if the preferred format is unavailable.</li>
-            <li><strong>Auto-Select Search Collection:</strong> Toggle to bypass the collections selection menu when searching. The addon will instead automatically route your query to your designated Default Collections.</li>
-            <li><strong>Maintenance & Debugging:</strong> Adjust network timeout limits, clear the addon's local cache, restore your collections to default settings, or enable debug logging for troubleshooting.</li>
-        </ul>
+            <h3 id="tutorial-4">4. Configuring Settings</h3>
+            <p>You can fine-tune the addon's performance to match your hardware and network speed by opening the Add-on Settings:</p>
+            <ul>
+                <li><strong>Playback Preferences:</strong> Hardcode your preferred video and audio formats (e.g., MP4 vs. MKV). You can also set a maximum resolution cap (like 720p or 1080p), which is highly recommended for slower internet connections.</li>
+                <li><strong>Default Collections:</strong> Choose to default your searches to either the Global Bypass (None) or All Curated Collections for Movies, TV Shows, and Audio.</li>
+                <li><strong>Auto-Play Next Episode/Track:</strong> Toggle the background playlist queueing system on or off. When enabled, the addon will automatically track your quality preferences based on the first file selected and continuously play the next episode or track in a list.</li>
+                <li><strong>Auto-Select Best Stream:</strong> Toggle to automatically select your preferred file format. Playback will fallback to the next available format if the preferred format is unavailable.</li>
+                <li><strong>Auto-Select Search Collection:</strong> Toggle to bypass the collections selection menu when searching. The addon will instead automatically route your query to your designated Default Collections.</li>
+                <li><strong>Maintenance & Debugging:</strong> Adjust network timeout limits, clear the addon's local cache, restore your collections to default settings, or enable debug logging for troubleshooting.</li>
+            </ul>
 
-        <h2 id="troubleshooting">🔧 Troubleshooting & Fixes (Disabling HTTP2)</h2>
-        <p>Newer versions of Kodi (v19 Matrix and above) utilize HTTP2 by default for network connections. While generally beneficial, HTTP2 can cause severe stuttering, freezing, and playback tracking issues when streaming large files from specific backend servers like the Internet Archive.</p>
-        <p>If you are experiencing buffering loops or the addon fails to track your resume points, <strong>disabling HTTP2 in Kodi</strong> is the recommended fix.</p>
-        
-        <p><strong>How to disable HTTP2:</strong></p>
-        <ol>
-            <li>Locate your Kodi <code>userdata</code> folder. The location depends on your operating system:
-                <ul>
-                    <li><strong>Windows:</strong> <code>%APPDATA%\Kodi\userdata</code></li>
-                    <li><strong>Linux / Raspberry Pi:</strong> <code>~/.kodi/userdata/</code></li>
-                    <li><strong>Android:</strong> <code>Android/data/org.xbmc.kodi/files/.kodi/userdata/</code></li>
-                    <li><strong>macOS:</strong> <code>~/Library/Application Support/Kodi/userdata/</code></li>
-                </ul>
-            </li>
-            <li>Look for a file named <code>advancedsettings.xml</code>. If it does not exist, create a new text document and name it <code>advancedsettings.xml</code>.</li>
-            <li>Open the file in any text editor and add the following code:</li>
-        </ol>
+            <h2 id="troubleshooting">Troubleshooting & Fixes (Disabling HTTP2)</h2>
+            <p>Newer versions of Kodi (v19 Matrix and above) utilize HTTP2 by default for network connections. While generally beneficial, HTTP2 can cause severe stuttering, freezing, and playback tracking issues when streaming large files from specific backend servers like the Internet Archive.</p>
+            <p>If you are experiencing buffering loops or the addon fails to track your resume points, <strong>disabling HTTP2 in Kodi</strong> is the recommended fix.</p>
+            
+            <p><strong>How to disable HTTP2:</strong></p>
+            <ol>
+                <li>Locate your Kodi <code>userdata</code> folder. The location depends on your operating system:
+                    <ul>
+                        <li><strong>Windows:</strong> <code>%APPDATA%\Kodi\userdata</code></li>
+                        <li><strong>Linux / Raspberry Pi:</strong> <code>~/.kodi/userdata/</code></li>
+                        <li><strong>Android:</strong> <code>Android/data/org.xbmc.kodi/files/.kodi/userdata/</code></li>
+                        <li><strong>macOS:</strong> <code>~/Library/Application Support/Kodi/userdata/</code></li>
+                    </ul>
+                </li>
+                <li>Look for a file named <code>advancedsettings.xml</code>. If it does not exist, create a new text document and name it <code>advancedsettings.xml</code>.</li>
+                <li>Open the file in any text editor and add the following code:</li>
+            </ol>
 
 <pre><code>&lt;advancedsettings&gt;
     &lt;network&gt;
@@ -385,13 +409,14 @@
     &lt;/network&gt;
 &lt;/advancedsettings&gt;</code></pre>
 
-        <p><em>(Note: If you already have an <code>advancedsettings.xml</code> file, simply add the <code>&lt;network&gt;</code> block inside your existing <code>&lt;advancedsettings&gt;</code> tags).</em></p>
-        <p>Save the file and <strong>restart Kodi</strong>. Your streams should now initialize via standard HTTP/1.1, resolving the stuttering.</p>
+            <p><em>(Note: If you already have an <code>advancedsettings.xml</code> file, simply add the <code>&lt;network&gt;</code> block inside your existing <code>&lt;advancedsettings&gt;</code> tags).</em></p>
+            <p>Save the file and <strong>restart Kodi</strong>. Your streams should now initialize via standard HTTP/1.1, resolving the stuttering.</p>
 
-        <div style="text-align: center;">
-            <a href="index.html" class="back-btn">← Back to Repository Hub</a>
-        </div>
+            <div style="text-align: center;">
+                <a href="index.html" class="back-btn">← Back to Repository Hub</a>
+            </div>
 
+        </main>
     </div>
 
 </body>
