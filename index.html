@@ -43,6 +43,15 @@
             font-size: 2.5rem;
         }
 
+        /* Standardized Button Group Layout */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
         .download-btn {
             display: inline-block;
             background-color: var(--accent-color);
@@ -52,13 +61,30 @@
             text-decoration: none;
             font-weight: bold;
             font-size: 1.1em;
-            margin-top: 1.5rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: background-color 0.2s;
         }
 
         .download-btn:hover {
             background-color: var(--accent-hover);
+        }
+
+        .github-btn {
+            display: inline-block;
+            background-color: transparent;
+            color: var(--text-color);
+            padding: 10px 24px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.2s;
+        }
+
+        .github-btn:hover {
+            border-color: var(--text-color);
+            background-color: #e9ecef;
         }
 
         .install-box, .ai-box {
@@ -154,7 +180,10 @@
         <h1>PythonTrousers Kodi Repository</h1>
         <p>The official distribution hub for custom, high-performance Kodi addons. Built with a focus on clean architecture, optimized playback, and open-source accessibility.</p>
         
-        <a href="repository.pythontrousers-0.2.0.zip" class="download-btn">Download Repository (v0.2.0)</a>
+        <div class="btn-group">
+            <a href="repository.pythontrousers-0.2.0.zip" class="download-btn">Download Repository (v0.2.0)</a>
+            <a href="https://github.com/PythonTrousers" class="github-btn" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        </div>
     </div>
 
     <div class="install-box">
