@@ -24,9 +24,8 @@
             line-height: 1.7;
         }
 
-        /* Hero Section utilizing fanart.jpg */
         .hero {
-            background-image: url('fanart.jpg');
+            background-image: url('./webassets/fanart.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -103,7 +102,18 @@
             border-left: 5px solid var(--theater-red);
             border-radius: 0 8px 8px 0;
             font-size: 1.1rem;
-            margin-bottom: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .fork-note {
+            background-color: #1a1a1a;
+            border-left: 4px solid var(--text-muted);
+            margin: 0 0 2.5rem 0;
+            padding: 1rem 1.5rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-style: italic;
+            border-radius: 0 8px 8px 0;
         }
 
         ul, ol {
@@ -164,7 +174,7 @@
 
     <div class="hero">
         <div class="hero-content">
-            <img src="icon.png" alt="IAT Icon">
+            <img src="./webassets/icon.png" alt="IAT Icon">
             <h1>Internet Archive Theater</h1>
             <p>v0.3.2 | Built for Kodi</p>
         </div>
@@ -175,6 +185,10 @@
         <div class="intro-box">
             <strong>Internet Archive Theater (IAT)</strong> is a dedicated video and audio plugin designed to interface with the Internet Archive. It provides a highly optimized, structured viewing experience for public domain and archived media directly within Kodi.
         </div>
+
+        <blockquote class="fork-note">
+            Note: This addon is a massive, heavily modified fork and spiritual successor to the original <code>plugin.video.archive.org</code> by gujal. Because the original addon was abandoned and broken by API changes, IAT was built from the ground up as a standalone app with entirely rewritten logic, custom UI flows, and expanded playback capabilities.
+        </blockquote>
 
         <h2>✨ Features & Additions</h2>
         <ul>

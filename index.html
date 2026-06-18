@@ -61,7 +61,7 @@
             background-color: var(--accent-hover);
         }
 
-        .install-box {
+        .install-box, .ai-box {
             background-color: var(--card-bg);
             padding: 2rem;
             border-radius: 8px;
@@ -69,7 +69,7 @@
             margin-bottom: 3rem;
         }
 
-        .install-box h2 {
+        .install-box h2, .ai-box h2 {
             margin-top: 0;
             border-bottom: 2px solid var(--bg-color);
             padding-bottom: 0.5rem;
@@ -93,6 +93,7 @@
             justify-content: center;
             flex-wrap: wrap;
             gap: 2rem;
+            margin-bottom: 3rem;
         }
 
         .addon-card {
@@ -117,7 +118,7 @@
         .addon-icon-container {
             width: 100%;
             height: 250px;
-            background-color: #e5cc9f; /* Color pulled from icon background */
+            background-color: #e5cc9f;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -174,13 +175,18 @@
     <div class="addon-grid">
         <a href="iat.html" class="addon-card">
             <div class="addon-icon-container">
-                <img src="icon.png" alt="Internet Archive Theater Icon">
+                <img src="./webassets/icon.png" alt="Internet Archive Theater Icon">
             </div>
             <div class="addon-info">
                 <h3>Internet Archive Theater</h3>
                 <p>A highly optimized, standalone viewing experience for streaming public domain movies, classic TV, and audio directly from Archive.org.</p>
             </div>
         </a>
+    </div>
+
+    <div class="ai-box">
+        <h2>🤖 AI Transparency Statement</h2>
+        <p>In the spirit of open-source transparency, please note that the addons in this repository utilize generative AI assistance during development. AI tools are used to assist with code formatting, logic rewrites, architectural structuring, and debugging, ensuring faster deployment and highly optimized scripts.</p>
     </div>
 
 </body>
