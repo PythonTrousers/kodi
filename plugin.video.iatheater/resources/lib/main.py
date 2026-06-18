@@ -69,12 +69,13 @@ class IATPlayer(xbmc.Player):
     Custom Player subclass to safely handle Kodi's internal playback events
     for accurate resume point tracking and playlist auto-advancing.
     """
-    def __init__(self, item_id, ep_tag, resume_title, content_type, main_instance):
+    def __init__(self, item_id, ep_tag, resume_title, content_type, search_type, main_instance):
         super().__init__()
         self.item_id = item_id
         self.ep_tag = ep_tag
         self.resume_title = resume_title
         self.content_type = content_type
+        self.search_type = search_type
         self.main_instance = main_instance
         self.last_known_time = 0.0
         self.is_active = True
@@ -95,7 +96,7 @@ class IATPlayer(xbmc.Player):
 
         # User manually stopped media early. Save the safely cached resume point.
         if self.last_known_time > 0:
-            self.main_instance._save_resume(self.item_id, self.ep_tag, self.resume_title, self.content_type, float(self.last_known_time))
+            self.main_instance._save_resume(self.item_id, self.ep_tag, self.resume_title, self.content_type, self.search_type, float(self.last_known_time))
         self.is_active = False
 
 
@@ -402,7 +403,7 @@ class Main(object):
                 return {}
         return {}
 
-    def _save_resume(self, item_id, ep_tag, title, content_type, time_pos):
+    def _save_resume(self, item_id, ep_tag, title, content_type, search_type, time_pos):
         res = self._get_resume()
         key = f"{item_id}_{ep_tag}"
         res[key] = {
@@ -410,6 +411,7 @@ class Main(object):
             'ep_tag': ep_tag,
             'title': title,
             'content_type': content_type,
+            'search_type': search_type,
             'time': time_pos
         }
         res_file = xbmcvfs.translatePath(f"{_addonpath}resume_data.json")
@@ -558,7 +560,8 @@ class Main(object):
                 'action': 'play_video',
                 'target': data['item_id'],
                 'ep_tag': data['ep_tag'],
-                'content_type': data['content_type']
+                'content_type': data['content_type'],
+                'search_type': data.get('search_type', '')
             })
             items_to_add.append((url, listitem, False))
             
@@ -1425,7 +1428,7 @@ class Main(object):
                     li.setProperty('resumetime', str(time_pos))
 
         # Initialize the event-driven custom player instance
-        player = IATPlayer(item_id, ep_tag, resume_title, content_type, self)
+        player = IATPlayer(item_id, ep_tag, resume_title, content_type, search_type, self)
         
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem=li)
         

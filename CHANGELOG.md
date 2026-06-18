@@ -1,5 +1,9 @@
 # Patch Notes & Changelog
 
+## [0.3.2] - Hotfix - 2026-06-18
+### Native Resume URL Matching
+* **Resume Tracking Fix:** Fixed a bug where media launched from the Continue Watching folder would fail to trigger Kodi's native resume prompt. Added the missing `search_type` parameter to the local resume JSON and injected it into the generated folder URLs to ensure they perfectly match Kodi's internal database tracking.
+
 ## [0.3.1] - 2026-06-18
 ### Collections Architecture, UI Overhaul & Resume Tracking
 Version 0.3.1 completely restructures how custom collections are saved and accessed. Hardcoded search arrays have been removed to give you full control over your curated environment, and the resume tracking system has been completely rewritten for optimal performance.
