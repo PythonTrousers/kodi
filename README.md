@@ -1,5 +1,7 @@
 # PythonTrousers Kodi Repository
 
+🌐 **[Visit the Official PythonTrousers Website](https://pythontrousers.github.io/kodi/)**
+
 Welcome to the official Kodi repository for PythonTrousers. This repository hosts custom media plugins and applications, built with a focus on clean architecture, optimized playback, and open-source accessibility.
 
 ## 🗂️ Table of Contents
@@ -18,7 +20,9 @@ Welcome to the official Kodi repository for PythonTrousers. This repository host
 ---
 
 ## <a id="about"></a>ℹ️ About This Repository
-This repository serves as the central distribution hub for current and future Kodi addons developed by PythonTrousers. It utilizes a zero-configuration raw backend delivery system, allowing seamless updates directly to your Kodi devices.
+This repository serves as the central distribution hub for current and future Kodi addons developed by PythonTrousers. It utilizes a zero-configuration raw backend delivery system, allowing seamless updates directly to your Kodi devices. 
+
+*Looking for installation guides or add-on manuals? Visit our [dedicated web hub](https://pythontrousers.github.io/kodi/) for streamlined documentation and troubleshooting.*
 
 ## <a id="ai"></a>🤖 AI Transparency Statement
 In the spirit of open-source transparency, please note that the addons in this repository utilize generative AI assistance during development. AI tools are used to assist with code formatting, logic rewrites, architectural structuring, and debugging, ensuring faster deployment and highly optimized scripts.
@@ -128,21 +132,3 @@ If you are experiencing buffering loops or the addon fails to track your resume 
         <disablehttp2>true</disablehttp2>
     </network>
 </advancedsettings>
-```
-   *(Note: If you already have an `advancedsettings.xml` file, simply add the `<network>` block inside your existing `<advancedsettings>` tags).*
-4. Save the file and **restart Kodi**. Your streams should now initialize via standard HTTP/1.1, resolving the stuttering.
-
----
-
-## <a id="developers"></a>🛠 For Developers: Repository Architecture
-
-This repository uses a zero-configuration raw backend delivery system managed by a local build script. 
-
-To publish updates or add new plugins:
-1. Update your plugin's code and iterate the version number in its `addon.xml`.
-2. Run `python _generator.py` from the root directory. This script will automatically:
-   * Sweep the target directory and permanently delete any obsolete `.zip` archives to prevent version conflicts.
-   * Package the new plugin release into standard Kodi `.zip` formats.
-   * Rebuild the master `addons.xml` index.
-   * Generate a new `addons.xml.md5` checksum hash.
-3. Commit and push the changes to the `main` branch. GitHub Pages will automatically serve the updated index to Kodi clients.
