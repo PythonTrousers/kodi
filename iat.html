@@ -87,7 +87,7 @@
         .layout-flex {
             display: flex;
             justify-content: center;
-            max-width: 1600px; /* Wide enough to hold all 3 columns */
+            max-width: 1600px;
             margin: 0 auto;
             padding: 3rem 2rem;
             align-items: flex-start;
@@ -96,7 +96,7 @@
         /* * Sticky Sidebar Styling * */
         .toc-sidebar {
             width: 280px;
-            flex-shrink: 0; /* Prevents sidebar from shrinking */
+            flex-shrink: 0;
             position: sticky;
             top: 2rem;
             padding-right: 2rem;
@@ -153,6 +153,17 @@
         }
 
         .toc-sublist a:hover {
+            color: var(--theater-gold);
+        }
+
+        /* Custom Separator for Return Link */
+        .toc-return {
+            margin-top: 2rem !important;
+            padding-top: 1.2rem;
+            border-top: 1px dashed #444;
+        }
+
+        .toc-return a {
             color: var(--theater-gold);
         }
 
@@ -253,20 +264,20 @@
         .dummy-spacer {
             width: 280px;
             flex-shrink: 0;
-            margin-left: 4rem; /* Matches the sidebar margin */
+            margin-left: 4rem;
             pointer-events: none;
         }
 
         /* * Laptop/Tablet Responsive Fallback * */
         @media (max-width: 1550px) {
             .dummy-spacer {
-                display: none; /* Kill spacer on smaller screens to prevent squashing */
+                display: none;
             }
             .layout-flex {
                 max-width: 1100px;
             }
             .toc-sidebar {
-                margin-right: 2rem; /* Tighten gap slightly */
+                margin-right: 2rem;
             }
         }
 
@@ -318,6 +329,8 @@
                     </ul>
                 </li>
                 <li><a href="#troubleshooting">Troubleshooting (HTTP2)</a></li>
+                
+                <li class="toc-return"><a href="index.html">← Back to Repository Hub</a></li>
             </ul>
         </aside>
 
