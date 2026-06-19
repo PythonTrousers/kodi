@@ -31,7 +31,7 @@ In the spirit of open-source transparency, please note that the addons in this r
 
 ## <a id="addons"></a>📦 Available Add-ons
 
-### <a id="iat"></a>Internet Archive Theater (v0.3.2)
+### <a id="iat"></a>Internet Archive Theater
 **Internet Archive Theater (IAT)** is a dedicated video and audio plugin designed to interface with the Internet Archive. It provides a highly optimized, structured viewing experience for public domain and archived media directly within Kodi.
 
 *Note: This addon is a massive, heavily modified fork and spiritual successor to the original `plugin.video.archive.org` by gujal. Because the original addon was abandoned and broken by API changes, IAT was built from the ground up as a standalone app with entirely rewritten logic, custom UI flows, and expanded playback capabilities.*
@@ -40,6 +40,9 @@ In the spirit of open-source transparency, please note that the addons in this r
 * **Continue Watching (Resume Data):** Added custom local JSON tracking to remember where you left off in a video. Seamlessly integrates with Kodi's native UI to prompt you to resume or restart upon selection.
 * **Search History Tracking:** Your recent searches are now locally saved, making it easy to jump back into a previous query without retyping.
 * **Granular Search Categories:** Replaced the old "Search All" with specific searches for Movies, TV Shows, and Audio, which intelligently target specific Internet Archive collections.
+* **Deep Folder Browsing:** Easily navigate through nested folders and sub-collections without hitting dead ends.
+* **Mixed Media Support:** Browse top-level collections and effortlessly play both video and audio files from the exact same folder.
+* **In-App Release Notes:** Read the latest updates and patch notes directly inside Kodi via the settings menu. The addon will also automatically notify you of major changes after an update.
 * **Curated Collection Shortcuts:** Added built-in shortcuts to popular media hubs (e.g., The VHS Vault, DVD Tray, Laserdisc Archive, Classic TV, etc.).
 * **Favorite Collections Subfolders:** Save custom Archive collections to a local favorites list. Your saved vaults are now automatically organized into distinct Movie, TV, and Audio subfolders to prevent clutter.
 * **Collection Search:** A dedicated search route to discover and browse user-curated collections globally across the Internet Archive.
@@ -49,9 +52,11 @@ In the spirit of open-source transparency, please note that the addons in this r
 * **Custom Visuals:** Added a native Kodi splash screen on startup to improve the aesthetic experience.
 
 #### <a id="optimizations"></a>Under-the-Hood Optimizations
-* **Strict Media Filtering:** Advanced regex and extension filtering automatically removes unplayable files, text documents, and junk data from your search results.
+* **Global API Standardization:** Injected a custom User-Agent string across all backend queries to ensure strict compliance with Archive.org developer guidelines and prevent server throttling.
+* **Dynamic Media Typing:** The addon reads the `mediatype` of every item on the fly, allowing for infinite folder traversal and preventing audio files from being incorrectly filtered out of general collection searches.
+* **Strict Media Filtering:** Advanced regex and extension filtering automatically removes unplayable files, text documents, and junk data from your curated search results.
 * **Smart Duration Parsing:** The new logic parses runtimes to automatically filter out promos, short clips, and trailers (e.g., hiding videos under 45 minutes when searching for "Movies").
-* **cURL Pipe Injection:** Streaming URLs are now injected with `|Connection=keep-alive&Timeout=60` to enforce persistent connections and prevent arbitrary dropouts. They also utilize transparent User-Agent spoofing to bypass backend throttling.
+* **cURL Pipe Injection:** Streaming URLs are now injected with `|Connection=keep-alive&Timeout=60` to enforce persistent connections and prevent arbitrary dropouts.
 * **Intelligent Server Routing:** Integrated a 3-second network fallback loop to intelligently bypass dead or unresponsive Archive.org data servers before stream failures occur.
 * **Continuous Memory Inheritance:** Playlist queues automatically inherit your specific format, resolution, and source preferences to ensure seamless auto-advancing across episodes.
 * **Native Resume Support:** Utilizes modern `InfoTagVideo` metadata tags to bypass forced starts and organically trigger Kodi's built-in "Resume" dialog prompts in v20+. 
@@ -91,7 +96,7 @@ The main menu is your starting point and is divided into specific functional rou
 
 ### 2. Finding & Favoriting Collections
 The Internet Archive is built on "Collections" (folders containing specific types of media). 
-* **Searching for Collections:** Select the **Search Collections** option from the main menu to look for specific themes or curators (e.g., searching "Laserdisc" will return vaults specifically dedicated to laserdisc rips). You can also browse the popular collections section.
+* **Searching for Collections:** Select the **Search Collections** option from the main menu to look for specific themes or curators (e.g., searching "Laserdisc" will return vaults specifically dedicated to laserdisc rips). These general searches display everything, meaning you can play both movies and audio tracks right from the same list. You can also explore as deep as you want—if a collection has folders inside of folders, just click them to keep digging.
 * **Favoriting Collections:** Once you find a collection you want to keep track of, highlight it, open the Kodi Context Menu (usually 'C' on a keyboard, or long-press the 'OK' button on a remote), and choose to save it to your Movie, TV, or Audio Collections. This sends the collection to its respective subfolder in your favorites for permanent quick access. 
 
 ### 3. Search Optimization
@@ -107,7 +112,7 @@ You can fine-tune the addon's performance to match your hardware and network spe
 * **Auto-Play Next Episode/Track:** Toggle the background playlist queueing system on or off. When enabled, the addon will automatically track your quality preferences based on the first file selected and continuously play the next episode or track in a list.
 * **Auto-Select Best Stream:** Toggle to automatically select your preferred file format. Playback will fallback to the next available format if the preferred format is unavailable. 
 * **Auto-Select Search Collection:** Toggle to bypass the collections selection menu when searching. The addon will instead automatically route your query to your designated Default Collections.
-* **Maintenance & Debugging:** Adjust network timeout limits, clear the addon's local cache, restore your collections to default settings, or enable debug logging for troubleshooting.
+* **Maintenance & Debugging:** Read the latest release notes, adjust network timeout limits, clear the addon's local cache, restore your collections to default settings, or enable debug logging for troubleshooting.
 
 ---
 
@@ -132,3 +137,7 @@ If you are experiencing buffering loops or the addon fails to track your resume 
         <disablehttp2>true</disablehttp2>
     </network>
 </advancedsettings>
+```
+*(Note: If you already have an `advancedsettings.xml` file, simply add the `<network>` block inside your existing `<advancedsettings>` tags).*
+
+Save the file and **restart Kodi**. Your streams should now initialize via standard HTTP/1.1, resolving the stuttering.

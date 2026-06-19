@@ -105,7 +105,10 @@ class Main(object):
         self.base_url = 'https://archive.org/'
         self.search_url = f'{self.base_url}services/search/beta/page_production/'
         self.img_path = f'{self.base_url}services/img/'
-        self.headers = {'Referer': self.base_url}
+        self.headers = {
+            'Referer': self.base_url,
+            'User-Agent': 'Kodi-InternetArchiveTheater-Addon (Contact: https://github.com/PythonTrousers)'
+        }
         
         # Cache parameters once on initialization
         self.args = urllib.parse.parse_qs(urllib.parse.urlparse(sys.argv[2]).query)
@@ -174,7 +177,7 @@ class Main(object):
         ]
 
         # Prioritize URL parameters over asynchronous settings read to prevent race conditions
-        content_type = self.parameters('content_type') or _settings('context')
+        content_type = self.parameters('content_type') or _settings('context') or 'all'
         if content_type and _settings('context') != content_type:
             _addon.setSetting('context', content_type)
             
@@ -230,9 +233,12 @@ class Main(object):
         elif action == 'clear':
             if xbmcgui.Dialog().yesno(_plugin, "Are you sure you want to clear the addon cache?"):
                 self.clear_cache()
+        elif action == 'view_changelog':
+            self.show_changelog()
         else:
             if action == '':
                 self.show_splash_screen()
+                self._check_changelog_trigger()
             self.main_menu(content_type)
 
     def main_menu(self, content_type):
@@ -269,16 +275,16 @@ class Main(object):
             elif i['key'] == 'search_audio':
                 url = f"{sys.argv[0]}?action=search&content_type=audio&search_type=audio"
             elif i['key'] == 'search_collections':
-                url = f"{sys.argv[0]}?action=search_collection_menu&content_type={content_type}"
+                url = f"{sys.argv[0]}?action=search_collection_menu&content_type=all"
             elif i['key'] == 'fav_collections':
-                url = f"{sys.argv[0]}?action=list_favorite_collections&content_type={content_type}"
+                url = f"{sys.argv[0]}?action=list_favorite_collections&content_type=all"
             elif i['key'] == 'history':
                 url = f"{sys.argv[0]}?action=search_history"
                 is_folder = True 
             elif i['key'] == 'continue':
                 url = f"{sys.argv[0]}?action=continue_watching"
             elif i['key'] == 'popular':
-                url = f"{sys.argv[0]}?action=list_collections&page=1&content_type=video"
+                url = f"{sys.argv[0]}?action=list_collections&page=1&content_type=all"
 
             xbmcplugin.addDirectoryItems(int(sys.argv[1]), [(url, listitem, is_folder)])
 
@@ -444,8 +450,11 @@ class Main(object):
         
         if content_type == 'video':
             return any(marker in formats_str for marker in self.video_markers)
-        else:
+        elif content_type == 'audio':
             return any(marker in formats_str for marker in self.audio_markers)
+        else: # 'all' or fallback
+            combined = self.video_markers + self.audio_markers
+            return any(marker in formats_str for marker in combined)
 
     def _parse_duration_to_minutes(self, duration_data):
         if not duration_data:
@@ -478,6 +487,24 @@ class Main(object):
         return f"{size:.2f} {slabels.get(n, 'PB')}"
 
     # --- UI VIEWS ---
+    
+    def _check_changelog_trigger(self):
+        last_version = _settings('last_run_version')
+        if last_version != _version:
+            self.show_changelog()
+            _addon.setSetting('last_run_version', _version)
+
+    def show_changelog(self):
+        changelog_path = xbmcvfs.translatePath(f"{_addon.getAddonInfo('path')}/changelog.txt")
+        if xbmcvfs.exists(changelog_path):
+            try:
+                with open(changelog_path, 'r', encoding='utf-8') as f:
+                    text = f.read()
+                xbmcgui.Dialog().textviewer(f"{_plugin} - Release Notes", text)
+            except Exception as e:
+                self.log(f"Error reading changelog: {str(e)}")
+        else:
+            xbmcgui.Dialog().notification(_plugin, "No changelog found.", _icon, 3000, False)
 
     def list_history(self):
         hist = self._get_history()
@@ -544,7 +571,7 @@ class Main(object):
             
             time_pos = data.get('time', 0.0)
             if time_pos > 0:
-                if _kodiver >= 20.0 and data['content_type'] == 'video':
+                if _kodiver >= 20.0 and data['content_type'] in ['video', 'all']:
                     listitem.getVideoInfoTag().setResumePoint(float(time_pos))
                 else:
                     listitem.setProperty('resumetime', str(time_pos))
@@ -625,7 +652,7 @@ class Main(object):
             items_to_add.append((url, listitem, True))
             
         xbmcplugin.addDirectoryItems(int(sys.argv[1]), items_to_add)
-        xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type == 'video' else 'albums')
+        xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type in ['video', 'all'] else 'albums')
         xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
     def clear_cache(self):
@@ -701,7 +728,7 @@ class Main(object):
                 
                 labels = {
                     'title': f"{title} [I]({count:,} items)[/I]",
-                    'plot' if content_type == 'video' else 'comment': plot
+                    'plot' if content_type in ['video', 'all'] else 'comment': plot
                 }
                 listitem = self.make_listitem(labels, content_type)
                 listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
@@ -741,7 +768,7 @@ class Main(object):
             if items_to_add:
                 xbmcplugin.addDirectoryItems(int(sys.argv[1]), items_to_add)
 
-            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type == 'video' else 'albums')
+            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type in ['video', 'all'] else 'albums')
             xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
             xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
             xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=True)
@@ -786,7 +813,7 @@ class Main(object):
                 plot = fields.get('description')
                 plot = unescape(plot[0] if isinstance(plot, list) and plot else (plot or ''))
                 
-                listitem = self.make_listitem({'title': f"[COLOR gold]{title}[/COLOR]", 'plot' if content_type == 'video' else 'comment': plot}, content_type)
+                listitem = self.make_listitem({'title': f"[COLOR gold]{title}[/COLOR]", 'plot' if content_type in ['video', 'all'] else 'comment': plot}, content_type)
                 listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
                 listitem.setProperty('IsPlayable', 'false')
                 
@@ -821,7 +848,7 @@ class Main(object):
                 url = f"{sys.argv[0]}?" + urllib.parse.urlencode(params)
                 items_to_add.append((url, listitem, True))
 
-            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type == 'video' else 'albums')
+            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type in ['video', 'all'] else 'albums')
             xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
         else:
             xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
@@ -844,7 +871,16 @@ class Main(object):
             items_to_add = []
             for item in items:
                 fields = item.get('fields', {})
-                if not self._has_playable_media(fields, content_type): continue
+                
+                is_collection = False
+                mediatypes = fields.get('mediatype', [])
+                if isinstance(mediatypes, list):
+                    is_collection = any('collection' in str(m).lower() for m in mediatypes)
+                elif isinstance(mediatypes, str):
+                    is_collection = 'collection' in mediatypes.lower()
+                
+                if not is_collection and not self._has_playable_media(fields, content_type): 
+                    continue
                 
                 title = fields.get('title')
                 if isinstance(title, list):
@@ -860,18 +896,30 @@ class Main(object):
                 
                 labels = {
                     'title': title,
-                    'plot' if content_type == 'video' else 'comment': plot
+                    'plot' if content_type in ['video', 'all'] else 'comment': plot
                 }
-                listitem = self.make_listitem(labels, content_type)
-                listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
-                listitem.setProperty('IsPlayable', 'false')
                 
-                url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
-                    'action': 'expand_item',
-                    'target': slug,
-                    'content_type': content_type,
-                    'search_type': search_type
-                })
+                listitem = self.make_listitem(labels, content_type)
+                
+                if is_collection:
+                    listitem.setArt({'icon': 'DefaultFolder.png', 'thumb': 'DefaultFolder.png', 'fanart': _fanart})
+                    url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                        'action': 'list_items',
+                        'page': 1,
+                        'target': slug,
+                        'content_type': content_type,
+                        'search_type': search_type
+                    })
+                else:
+                    listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
+                    url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                        'action': 'expand_item',
+                        'target': slug,
+                        'content_type': content_type,
+                        'search_type': search_type
+                    })
+                
+                listitem.setProperty('IsPlayable', 'false')
                 items_to_add.append((url, listitem, True))
 
             if not items_to_add:
@@ -898,7 +946,7 @@ class Main(object):
             if items_to_add:
                 xbmcplugin.addDirectoryItems(int(sys.argv[1]), items_to_add)
 
-            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type == 'video' else 'songs')
+            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type in ['video', 'all'] else 'songs')
             xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
             xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
             xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=True)
@@ -1042,9 +1090,18 @@ class Main(object):
             
             for item in items:
                 fields = item.get('fields', {})
-                if not self._has_playable_media(fields, content_type): continue
                 
-                if search_type in ['movie', 'tv']:
+                is_collection = False
+                mediatypes = fields.get('mediatype', [])
+                if isinstance(mediatypes, list):
+                    is_collection = any('collection' in str(m).lower() for m in mediatypes)
+                elif isinstance(mediatypes, str):
+                    is_collection = 'collection' in mediatypes.lower()
+                    
+                if not is_collection and not self._has_playable_media(fields, content_type): 
+                    continue
+                
+                if not is_collection and search_type in ['movie', 'tv']:
                     dur_data = fields.get('duration') or fields.get('length')
                     dur_mins = self._parse_duration_to_minutes(dur_data)
                     
@@ -1068,18 +1125,29 @@ class Main(object):
                 
                 labels = {
                     'title': title,
-                    'plot' if content_type == 'video' else 'comment': plot
+                    'plot' if content_type in ['video', 'all'] else 'comment': plot
                 }
                 listitem = self.make_listitem(labels, content_type)
-                listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
-                listitem.setProperty('IsPlayable', 'false')
                 
-                url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
-                    'action': 'expand_item',
-                    'target': slug,
-                    'content_type': content_type,
-                    'search_type': search_type
-                })
+                if is_collection:
+                    listitem.setArt({'icon': 'DefaultFolder.png', 'thumb': 'DefaultFolder.png', 'fanart': _fanart})
+                    url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                        'action': 'list_items',
+                        'page': 1,
+                        'target': slug,
+                        'content_type': content_type,
+                        'search_type': search_type
+                    })
+                else:
+                    listitem.setArt({'icon': self.img_path + slug, 'thumb': self.img_path + slug, 'fanart': _fanart})
+                    url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
+                        'action': 'expand_item',
+                        'target': slug,
+                        'content_type': content_type,
+                        'search_type': search_type
+                    })
+                
+                listitem.setProperty('IsPlayable', 'false')
                 items_to_add.append((url, listitem, True))
 
             if not items_to_add:
@@ -1111,7 +1179,7 @@ class Main(object):
             if items_to_add:
                 xbmcplugin.addDirectoryItems(int(sys.argv[1]), items_to_add)
 
-            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type == 'video' else 'songs')
+            xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type in ['video', 'all'] else 'songs')
             xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
             xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_TITLE)
             xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=True)
@@ -1148,7 +1216,13 @@ class Main(object):
             xbmcplugin.endOfDirectory(int(sys.argv[1]), True)
             return
 
-        valid_exts = self.video_exts if content_type == 'video' else self.audio_exts
+        if content_type == 'video':
+            valid_exts = self.video_exts
+        elif content_type == 'audio':
+            valid_exts = self.audio_exts
+        else:
+            valid_exts = self.video_exts + self.audio_exts
+
         sources = [i for i in jd.get('files', []) if i.get('name', '').lower().endswith(valid_exts) and '.ia.' not in i.get('name', '').lower()]
 
         if not sources:
@@ -1193,7 +1267,7 @@ class Main(object):
             listitem.setProperty('IsPlayable', 'true')
             
             if time_pos > 0:
-                if _kodiver >= 20.0 and content_type == 'video':
+                if _kodiver >= 20.0 and content_type in ['video', 'all']:
                     listitem.getVideoInfoTag().setResumePoint(float(time_pos))
                 else:
                     listitem.setProperty('resumetime', str(time_pos))
@@ -1210,7 +1284,7 @@ class Main(object):
         if items_to_add:
             xbmcplugin.addDirectoryItems(int(sys.argv[1]), items_to_add)
             
-        xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type == 'video' else 'songs')
+        xbmcplugin.setContent(int(sys.argv[1]), 'videos' if content_type in ['video', 'all'] else 'songs')
         xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
     def play_video(self, item_id, content_type):
@@ -1259,7 +1333,13 @@ class Main(object):
         workable_servers = jd.get('workable_servers', ['archive.org'])
         item_dir = jd.get('dir', '')
 
-        valid_exts = self.video_exts if content_type == 'video' else self.audio_exts
+        if content_type == 'video':
+            valid_exts = self.video_exts
+        elif content_type == 'audio':
+            valid_exts = self.audio_exts
+        else:
+            valid_exts = self.video_exts + self.audio_exts
+
         sources = [i for i in files if i.get('name', '').lower().endswith(valid_exts) and '.ia.' not in i.get('name', '').lower()]
         
         episodes = {}
@@ -1286,7 +1366,7 @@ class Main(object):
 
         # --- SELECTION & FORMAT MEMORY LOGIC ---
         if len(target_files) > 1:
-            if content_type == 'video':
+            if content_type in ['video', 'all']:
                 target_files.sort(key=lambda i: (self._safe_int(i.get('height')), i.get('source', ''), self._safe_int(i.get('size'))), reverse=True)
             else:
                 target_files.sort(key=lambda i: self._safe_int(i.get('size')), reverse=True)
@@ -1314,7 +1394,7 @@ class Main(object):
                 selected_file = best_match if best_match else target_files[0]
                 
             elif auto_stream:
-                if content_type == 'video' and max_res < 99999:
+                if content_type in ['video', 'all'] and max_res < 99999:
                     filtered_files = [f for f in target_files if self._safe_int(f.get('height')) <= max_res or self._safe_int(f.get('height')) == 0]
                     if filtered_files:
                         target_files = filtered_files
@@ -1336,7 +1416,7 @@ class Main(object):
                     size = self.format_bytes(self._safe_int(i.get('size')))
                     source = i.get('source', 'Unknown').capitalize()
                     
-                    if content_type == 'video':
+                    if content_type == 'video' or (content_type == 'all' and f".{ext.lower()}" in self.video_exts):
                         height = self._safe_int(i.get('height'))
                         res = f"{height}p" if height > 0 else "Unknown Res"
                         srcs.append(f"[{ext}] {res} | {size} | {source}")
@@ -1422,7 +1502,7 @@ class Main(object):
         if res_key in res_data:
             time_pos = res_data[res_key].get('time', 0.0)
             if time_pos > 0:
-                if _kodiver >= 20.0 and content_type == 'video':
+                if _kodiver >= 20.0 and content_type in ['video', 'all']:
                     li.getVideoInfoTag().setResumePoint(float(time_pos))
                 else:
                     li.setProperty('resumetime', str(time_pos))
@@ -1446,7 +1526,7 @@ class Main(object):
                 sel_source = str(selected_file.get('source', ''))
                 
                 # Generate the playlist synchronously in the main thread to prevent Kodi UI race conditions
-                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO if content_type == 'video' else xbmc.PLAYLIST_MUSIC)
+                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO if content_type in ['video', 'all'] else xbmc.PLAYLIST_MUSIC)
                 for r_tag in remaining_tags:
                     q_url = f"{sys.argv[0]}?" + urllib.parse.urlencode({
                         'action': 'play_video',
@@ -1464,7 +1544,7 @@ class Main(object):
                     playlist.add(url=q_url, listitem=q_li)
 
         # Main-Thread Tracking Loop Integration (Replaces dead background t2 thread)
-        if content_type == 'video':
+        if content_type in ['video', 'all']:
             monitor = xbmc.Monitor()
             # Suspend the script for 2 seconds to allow the player to fully initialize before starting playback state assertions
             monitor.waitForAbort(2.0)
@@ -1510,7 +1590,7 @@ class Main(object):
         title_str = str(labels.get('title') or '')
         li = xbmcgui.ListItem(title_str)
         if _kodiver >= 20.0:
-            if content_type == 'video':
+            if content_type in ['video', 'all']:
                 vtag = li.getVideoInfoTag()
                 vtag.setTitle(title_str)
                 vtag.setOriginalTitle(title_str)
@@ -1538,7 +1618,7 @@ class Main(object):
                     except:
                         pass
         else:
-            li.setInfo(type='video' if content_type == 'video' else 'music', infoLabels=labels)
+            li.setInfo(type='video' if content_type in ['video', 'all'] else 'music', infoLabels=labels)
 
         return li
 

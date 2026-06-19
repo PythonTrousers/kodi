@@ -1,5 +1,17 @@
 # Patch Notes & Changelog
 
+## [0.3.3] - 2026-06-19
+### Added
+* **Automated Release Notes Viewer:** The addon will now automatically display the changelog upon a fresh install or immediately following an addon update.
+* **Manual Changelog Access:** Added a dedicated "View Release Notes" button within the Advanced category of the settings menu for on-demand access.
+
+### Changed & Fixed
+* **Infinite Sub-Folder Traversal:** Resolved an issue where nested sub-collections were incorrectly parsed and flagged as missing media files. The addon now dynamically reads the `mediatype` tag to bypass media filters, assign standard folder icons, and properly route directories. This allows for infinite traversal of nested folders without dropping valid entries.
+* **Global API User-Agent Standardization:** Injected the custom `Kodi-InternetArchiveTheater-Addon` User-Agent string into the global headers dictionary. All search queries and metadata fetches are now properly identified to the server, preventing network throttling and ensuring strict compliance with the Internet Archive's developer guidelines.
+* **Mixed Media Collection Support:** Fixed an issue where general collection browsing would aggressively filter out audio files based on default video parameters. "Popular Collections", "Search Collections", and top-level "Favorite Collections" are now fully unfiltered, allowing the script to safely combine `.mp4` and `.mp3` items side-by-side.
+* **Global Unfiltered Default:** The addon now initializes with a global `all` content tag, opening up the browsing experience out of the box while allowing curated menus (like "Search Movies") to retain their strict downwards filtering.
+* **UI Safety Fallbacks:** Mixed media directories now explicitly default to Kodi's native `videos` UI template to prevent graphical rendering crashes when displaying audio and video items together.
+
 ## [0.3.2] - Hotfix - 2026-06-18
 ### Native Resume URL Matching
 * **Resume Tracking Fix:** Fixed a bug where media launched from the Continue Watching folder would fail to trigger Kodi's native resume prompt. Added the missing `search_type` parameter to the local resume JSON and injected it into the generated folder URLs to ensure they perfectly match Kodi's internal database tracking.
@@ -28,53 +40,35 @@ Version 0.3.1 completely restructures how custom collections are saved and acces
 
 ## [0.3.0] - 2026-06-17
 ### Internet Archive Theater (IAT) Major Update
-Version 0.3.0 implements major structural refactors, a brand-new collection search system, intelligent server routing, and comprehensive local storage capabilities. 
+Version 0.3.0 implements major structural refactors, a brand-new collection search system, intelligent server routing, and comprehensive local storage capabilities.
 
 **UI & Feature Additions**
-* **Collection Search:** * Replaced the generic "Search All Videos" menu route.
-  * Added dynamic "Search Collections" and "Favorite Collections" targets.
-* **Favorite Collections System:** * Implemented local JSON data management.
-  * Enables users to save custom curations for quick access.
-* **Smart Search Routing:** * Dynamically populates the UI selection array from class properties and user favorites.
-  * Integrated "None" wildcard and "All Curated Collections" options.
-* **Collection History:** * Added conditional routing to `list_history`.
-  * Correctly identifies and relaunches successfully saved "collection" searches.
+* **Collection Search:** Replaced the generic "Search All Videos" menu route. Added dynamic "Search Collections" and "Favorite Collections" targets.
+* **Favorite Collections System:** Implemented local JSON data management. Enables users to save custom curations for quick access.
+* **Smart Search Routing:** Dynamically populates the UI selection array from class properties and user favorites. Integrated "None" wildcard and "All Curated Collections" options.
+* **Collection History:** Added conditional routing to `list_history`. Correctly identifies and relaunches successfully saved "collection" searches.
 
 **Playback & Networking Optimizations**
-* **Intelligent Server Fallback:** * Integrated a 3-second `urllib.request` node fallback loop.
-  * Gracefully skips dead Archive.org servers before crashing the stream.
-* **Continuous Playlist Memory:** * Playlist queues now actively inherit your specific settings.
-  * Locks in `pref_ext`, `pref_height`, and `pref_source` for flawless auto-advancing.
-* **DVD ISO Special Handling:** * Added `.iso` support to audio arrays.
-  * Explicitly disabled automated queue generation for ISO targets to prevent UI lockups.
-  * Disabled Kodi `ContentLookup` and set explicit MIME types for rapid ISO parsing.
-* **Proxy Headers:** * Appended strict `User-Agent` and `Keep-Alive` proxy headers to backend requests.
-  * Effectively bypasses persistent backend throttling limitations.
+* **Intelligent Server Fallback:** Integrated a 3-second `urllib.request` node fallback loop. Gracefully skips dead Archive.org servers before crashing the stream.
+* **Continuous Playlist Memory:** Playlist queues now actively inherit your specific settings. Locks in `pref_ext`, `pref_height`, and `pref_source` for flawless auto-advancing.
+* **DVD ISO Special Handling:** Added `.iso` support to audio arrays. Explicitly disabled automated queue generation for ISO targets to prevent UI lockups. Disabled Kodi `ContentLookup` and set explicit MIME types for rapid ISO parsing.
+* **Proxy Headers:** Appended strict `User-Agent` and `Keep-Alive` proxy headers to backend requests. Effectively bypasses persistent backend throttling limitations.
 
 **Under-the-Hood Structural Fixes**
-* **Class Migration:** * Migrated static collection definitions (`cat_video`, `cat_movie`, etc.).
-  * Integrated directly into `__init__` class properties for global access.
-* **API Communicator:** * Created a unified `fetch_archive_metadata` handler.
-  * Actively prevents `HTTP 400` errors by safely stripping empty `filter_map` parameters.
-* **Math Fix:** * Corrected a loop indentation bug inside `format_bytes`.
-  * Accurately calculates and stringifies MB/GB file sizes in the UI.
+* **Class Migration:** Migrated static collection definitions (`cat_video`, `cat_movie`, etc.). Integrated directly into `__init__` class properties for global access.
+* **API Communicator:** Created a unified `fetch_archive_metadata` handler. Actively prevents `HTTP 400` errors by safely stripping empty `filter_map` parameters.
+* **Math Fix:** Corrected a loop indentation bug inside `format_bytes`. Accurately calculates and stringifies MB/GB file sizes in the UI.
 
 ## Repository Generator Tools
 ### Build Script Updates (`_generator.py`)
-* **Automated Cleanups:** * Updated `create_zip` and `sync_root_zip` functions.
-  * Dynamically sweeps directories and deletes pre-existing `.zip` files before packaging.
-  * Ensures only the current iteration dictated by `addon.xml` is maintained.
+* **Automated Cleanups:** Updated `create_zip` and `sync_root_zip` functions. Dynamically sweeps directories and deletes pre-existing `.zip` files before packaging. Ensures only the current iteration dictated by `addon.xml` is maintained.
 
 ---
 
 ## [0.2.2 & 0.2.3] - Hotfixes - 2026-06-16
 ### Playback & Search Stability Updates
-* **Playlist Stability (0.2.2):**
-  * Removed background threading for playlist generation in `play_video`.
-  * Executing synchronously prevents concurrent `busydialogs` crashes in Kodi during track transitions.
-* **Search Fixes (0.2.3):**
-  * Fixed collection string slicing typo within the `search_word` function.
-  * Removed `downloads desc` sorting parameter to resolve image server timeouts.
+* **Playlist Stability (0.2.2):** Removed background threading for playlist generation in `play_video`. Executing synchronously prevents concurrent `busydialogs` crashes in Kodi during track transitions.
+* **Search Fixes (0.2.3):** Fixed collection string slicing typo within the `search_word` function. Removed `downloads desc` sorting parameter to resolve image server timeouts.
 
 ---
 

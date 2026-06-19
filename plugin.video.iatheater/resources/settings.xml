@@ -22,5 +22,9 @@
 		<setting id="clear_cache" type="action" label="30002" action="RunPlugin(plugin://plugin.video.iatheater/?action=clear)"/>
 		<setting id="restore_defaults" type="action" label="Restore Default Collections" action="RunPlugin(plugin://plugin.video.iatheater/?action=restore_defaults)"/>
 		<setting id="DebugMode" type="bool" label="30003" default="false"/>
+		<setting id="view_changelog" type="action" label="View Release Notes" action="RunPlugin(plugin://plugin.video.iatheater/?action=view_changelog)"/>
+		
+		<!-- Hidden Data Memory -->
+		<setting id="last_run_version" type="text" visible="false" default=""/>
 	</category>
 </settings>
